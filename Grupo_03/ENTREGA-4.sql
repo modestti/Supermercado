@@ -43,6 +43,7 @@ BEGIN
 			--Pasamos la informacion a nuestra tabla
 			INSERT INTO Prod.Electronico(nombre,precioDolares)
 				SELECT Product,Precio_Unitario_en_dolares FROM #ElectronicoTemporal
+			WHERE NOT EXISTS (SELECT 1 FROM Prod.Electronico WHERE nombre=Product)
 
 			--Eliminamos la tabla temporal 
 			PRINT 'Los datos se insertaron exitosamente' 
