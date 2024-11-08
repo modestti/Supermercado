@@ -212,17 +212,6 @@ GO
 
 
 -------------------------------------------------------------------------------------------------------------
------------------------------------------- MEDIOS DE PAGOS --------------------------------------------------
--------------------------------------------------------------------------------------------------------------
-CREATE TABLE Info.MedioPago
-(
-	identificadorPago int identity (1,1) primary key,
-	tipoPago varchar (50) check (tipoPago IN ('EWallet','Cash','CreditCard')),
-	nroTarjetaCuenta varchar (50),
-);
-GO
-
--------------------------------------------------------------------------------------------------------------
 ------------------------------------------- CLASIFICACION ---------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
 CREATE TABLE Prod.Clasificacion
@@ -379,33 +368,37 @@ GO
 -------------------------------------------------------------------------------------------------------------
 ----------------------------------------- VENTAS REGISTRADAS ------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
-DROP TABLE Ven.Registrada
 CREATE TABLE Ven.Registrada
 (
-	idFactura char(11) primary key,
+	idVenta int identity(1,1) primary key,
+	idFactura char(11),
 	tipoFactura char check (tipoFactura IN ('A','B','C')),
-	ciudad varchar(30),
-	tipoCliente varchar(8),
-	genero varchar(8),
-	lineaProducto varchar(50),
+	ciudad varchar(100),
+	tipoCliente varchar(50),
+	genero varchar(20),
+	lineaProducto varchar(100),
 	precioUnitario decimal(10,2),
 	cantidad int check(cantidad>0),
 	total decimal(10,3),
 	fecha date,
 	hora time,
-	medioPago varchar(12) check (medioPago IN ('EWallet','Cash','CreditCard')),
-	---FOREIGN KEYS
+	medioPago varchar(40),
 	idEmpleado int not null,
-	identificadorPago int,
+	identificadorPago varchar(100),
+
+	---FOREIGN KEYS
 	idSucursal int,
 	idImportado int,
 	idElectronico int,
 	idCatalogo int,
+
 	CONSTRAINT FK_idEmpleado FOREIGN KEY (idEmpleado) REFERENCES Info.Empleado(idEmpleado),
-	CONSTRAINT FK_identificadorPago FOREIGN KEY  (identificadorPago) REFERENCES  Info.MedioPago(identificadorPago),
 	CONSTRAINT FK_idSucursal FOREIGN KEY (idSucursal) REFERENCES Info.Sucursal(idSucursal),
 	CONSTRAINT FK_idImportado FOREIGN KEY (idImportado) REFERENCES Prod.Importado(idImportado),
 	CONSTRAINT FK_idElectronico FOREIGN KEY (idElectronico) REFERENCES Prod.Electronico(idElectronico),
 	CONSTRAINT FK_idCatalogo FOREIGN KEY (idCatalogo) REFERENCES Prod.Catalogo(idCatalogo)
 );
 GO
+
+--------------------------------------- INGRESAR UNA VENTA -----------------------------------------
+

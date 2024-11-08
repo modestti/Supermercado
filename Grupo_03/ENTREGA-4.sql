@@ -19,31 +19,32 @@ CREATE OR ALTER PROCEDURE Prod.importarProductosElectronicos (@RutaArchivo NVARC
 AS 
 BEGIN  
 			DECLARE @Consulta nvarchar(MAX)
-			--CREAMOS LA TABLA TEMPORAL DONDE VAMOS A DESCARGAR LA INFORMACION DEL ARCHIVO
+			--Creamos la tabla temporal donde vamos a descargar nuestro archivo
 			CREATE TABLE #ElectronicoTemporal
 			(
 				Product varchar(100),
 				Precio_Unitario_en_dolares decimal(10,2)
 			)
 
-			--GENERAMOS LA CONSULTA Y EJECUTAMOS 
+			--Generamos la consulta de importacion 
 			SET @Consulta = N'
 				INSERT INTO #ElectronicoTemporal(Product,Precio_Unitario_en_dolares)
 					SELECT Product, [Precio Unitario en dolares]
 						FROM OPENROWSET(
 								''Microsoft.ACE.OLEDB.12.0'',
-								''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'',
+								''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'', --Especifica que es un archivo Excel, la ruta del archivo, que hay encabezado y la hoja en la que se encuentran los datos
 								''SELECT * FROM ['+@nombreHoja+']'');'
+			--Ejecutamos la consulta
 			EXEC sp_executesql @Consulta;
 
-			--MUESTRO LA TABLA TEMPORAL PARA COMPROBAR QUE LA INFORMACION SE BAJO CORRECTAMENTE
+			--Muestro la tabla temporal para verificar que la informacion se descargo exitosamente 
 			SELECT * FROM #ElectronicoTemporal;
 
-			--PASAMOS LA INFORMACION DE LA TABLA TEMPORAL A LA TABLA PRODUCTOS ELECTRONICOS
+			--Pasamos la informacion a nuestra tabla
 			INSERT INTO Prod.Electronico(nombre,precioDolares)
 				SELECT Product,Precio_Unitario_en_dolares FROM #ElectronicoTemporal
 
-			--ELIMINAMOS LA TABLA TEMPORAL
+			--Eliminamos la tabla temporal 
 			PRINT 'Los datos se insertaron exitosamente' 
 			DROP TABLE #ElectronicoTemporal
 END
@@ -53,50 +54,50 @@ SELECT * FROM Prod.Electronico ---VERIFICO QUE SE HAYA IMPORTADO A LA TABLA
 GO
 
 ------------------------------------------ PRODUCTOS IMPORTADOS ---------------------------------------------
-DROP PROCEDURE IF EXISTS Prod.importarProductosImportados
-GO
 CREATE OR ALTER PROCEDURE Prod.importarProductosImportados (@RutaArchivo nvarchar(MAX), @NombreHoja nvarchar(50))
 AS 
 BEGIN
-		DECLARE @Consulta NVARCHAR(MAX) 
-					 CREATE TABLE #ImportadosTemporal
-					 (
-						IdProducto int,
-						NombreProducto varchar(100),
-						Proveedor varchar(100),
-						Categoría varchar(50),
-						CantidadPorUnidad varchar(255),
-						PrecioUnidad decimal(10,2)
-					) 
+			-- Declaramos la variable consulta y la tabla temporal 
+			DECLARE @Consulta NVARCHAR(MAX) 
+			CREATE TABLE #ImportadosTemporal
+			(
+				IdProducto int,
+				NombreProducto varchar(100),
+				Proveedor varchar(100),
+				Categoría varchar(50),
+				CantidadPorUnidad varchar(255),
+				PrecioUnidad decimal(10,2)
+			) 
+			-- Generamos la consulta con SQL Dinamico para importar el archivo a la tabla temporal
+			SET @Consulta = N'
+				INSERT INTO #ImportadosTemporal(IdProducto,NombreProducto,Proveedor,Categoría,CantidadPorUnidad,PrecioUnidad)
+				SELECT IdProducto,NombreProducto,Proveedor,Categoría,CantidadPorUnidad,PrecioUnidad
+				FROM OPENROWSET(
+					''Microsoft.ACE.OLEDB.12.0'', --Proveedor OLEB
+					''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'', --Especifica que es un archivo Excel, la ruta del archivo, que hay encabezado y la hoja en la que se encuentran los datos
+					''SELECT * FROM ['+@nombreHoja+']'');'  
+			-- Ejecutamos la consulta
+			EXEC sp_executesql @Consulta 
 
-				SET @Consulta = N'
-					INSERT INTO #ImportadosTemporal(IdProducto,NombreProducto,Proveedor,Categoría,CantidadPorUnidad,PrecioUnidad)
-					SELECT IdProducto,NombreProducto,Proveedor,Categoría,CantidadPorUnidad,PrecioUnidad
-					FROM OPENROWSET(
-						''Microsoft.ACE.OLEDB.12.0'',
-						''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'',
-						''SELECT * FROM ['+@nombreHoja+']'');'
-
-				EXEC sp_executesql @Consulta 
-
-				SELECT * FROM #ImportadosTemporal
-
-				INSERT INTO Prod.Importado(nombre,proveedor,categoria,cantidadXUnidad,precioUnidad)
-					SELECT NombreProducto,Proveedor,Categoría,CantidadPorUnidad,PrecioUnidad FROM #ImportadosTemporal
-				PRINT 'Los datos se insertaron exitosamente' 
-				DROP TABLE #ImportadosTemporal
+			-- Verificamos si los datos se importaron finalmente a la tala temporal
+			SELECT * FROM #ImportadosTemporal
+			-- Insertamos a nuestra tabla, las filas que se encuentran en la tabla temporal
+			INSERT INTO Prod.Importado(nombre,proveedor,categoria,cantidadXUnidad,precioUnidad)
+			SELECT NombreProducto,Proveedor,Categoría,CantidadPorUnidad,PrecioUnidad FROM #ImportadosTemporal
+			-- Eliminamos la tabla temporal 
+			PRINT 'Los datos se insertaron exitosamente' 
+			DROP TABLE #ImportadosTemporal
 END 
 GO
 EXECUTE Prod.importarProductosImportados @RutaArchivo='C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS01\TRABAJO PRACTICO\TP_integrador_Archivos\Productos\Productos_importados.xlsx', @NombreHoja='Listado de Productos$' 
-SELECT * FROM Prod.Importado
+SELECT * FROM Prod.Importado ---VERIFICO QUE SE HAYA IMPORTADO A LA TABLA
 GO
 
 ---------------------------------------------- CATALOGO GENERAL ---------------------------------------------
-DROP PROCEDURE IF EXISTS Prod.importarCatalogo;
-GO
 CREATE OR ALTER PROCEDURE Prod.importarCatalogo (@RutaArchivo nvarchar(MAX))
 AS 
 BEGIN 
+			-- Creamos la tabla temporal
             CREATE TABLE #CatalogoTemporal 
             (
 				id int,
@@ -108,25 +109,27 @@ BEGIN
                 [date] datetime
             );
 
+			-- Generamos con SQL Dinamico la consulta que nos va a servir para importar el archivo a la tabla temporal
             DECLARE @Consulta NVARCHAR(MAX) 
             SET @Consulta = N' 
                 BULK INSERT #CatalogoTemporal 
                 FROM ''' + @RutaArchivo + ''' 
                 WITH (
-					FORMAT = ''CSV'',
-                    FIELDTERMINATOR = '','', 
-					ROWTERMINATOR = ''0x0a'', 
-					FIRSTROW = 2,               
-					CODEPAGE = ''65001'' 
+					FORMAT = ''CSV'',			-- Usamos formato CSV debido a la extension del archivo
+                    FIELDTERMINATOR = '','',	-- Especifica el delimitador de campo como ,           
+					ROWTERMINATOR = ''0x0a'',	-- Especifica el delimitador de fila
+					FIRSTROW = 2,				-- Ignora encabezados y comienza desde la segunda fila           
+					CODEPAGE = ''65001''		-- Codigo de pagina UTF-8 (Caractere unicos)
                 );';
 
+			-- Ejecutamos la consulta 
             EXEC sp_executesql @Consulta 
 
+			-- Verificamos que la consulta haya importado la informacion a la tabla temporal 
 			SELECT * FROM #CatalogoTemporal;
 
+			-- Inserta en la tabla final de catalogo y casteamos los valores de varchar
 			DECLARE @idProdCat int 
-
-            -- Inserta en la tabla final haciendo conversión de fecha
 			INSERT Prod.Catalogo(categoria, nombre, precio, referenciaPrecio, referenciaUnidad, fecha_hora,idProductoCat)
 			SELECT ct.category,[name], TRY_CAST(ct.price AS decimal(10,2)), TRY_CAST(ct.reference_price AS decimal(10,2)), ct.reference_unit,ct.[date],c.IdProducto FROM #CatalogoTemporal ct 
 			INNER JOIN  Prod.Clasificacion c on c.producto=ct.category
@@ -136,8 +139,8 @@ BEGIN
 END 
 GO
 EXECUTE Prod.importarCatalogo 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS01\TRABAJO PRACTICO\TP_integrador_Archivos\Productos\catalogo.csv';
-select * from Prod.Catalogo ---VERIFICO QUE SE HAYA IMPORTADO A LA TABLA
-select * from Prod.Clasificacion
+GO
+SELECT * FROM Prod.Catalogo ---VERIFICO QUE SE HAYA IMPORTADO A LA TABLA
 GO
 
 
@@ -154,32 +157,34 @@ AS
 BEGIN
  BEGIN TRY
 			DECLARE @Consulta nvarchar(MAX)
-
+			--Creamos la tabla temporal 
 			CREATE TABLE #ClasificacionTemporal
 			(
 				lineaProducto varchar(20),
 				producto varchar(50)
 			) 
-
+			--Generamos la consulta con SQL Dinamico para importar el archivo a la tabla temporal 
 			SET @Consulta = N'
 				INSERT INTO #ClasificacionTemporal(lineaProducto,producto)
 				SELECT *
 				FROM OPENROWSET(
 				''Microsoft.ACE.OLEDB.12.0'',
-				''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'',
+				''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'', --Especifica que es un archivo Excel, la ruta del archivo, que hay encabezado y la hoja en la que se encuentran los datos
 				''SELECT * FROM ['+@nombreHoja+']'');'
+			--Ejecutamos la consulta
 			EXEC sp_executesql @Consulta 
 
 			SELECT * FROM #ClasificacionTemporal
-			
+			--Inserto en la tabla de clasificacion la informacion que se encuentra en la tabla temporal
 			INSERT INTO Prod.Clasificacion(lineaProducto,producto)
 			SELECT lineaProducto,producto FROM #ClasificacionTemporal
 
+			--Elimino la tabla temporal
 			PRINT 'Los datos se insertaron exitosamente' 
 			DROP TABLE #ClasificacionTemporal
-		
  END TRY 
  BEGIN CATCH 
+  --En caso de fallar la hora de la importacion mostraria el mensaje con el error correspondiente 
   PRINT 'No se pudieron importar la clasificacion de productos' + @RutaArchivo 
   PRINT ERROR_MESSAGE() 
  END CATCH 
@@ -196,7 +201,7 @@ AS
 BEGIN
  BEGIN TRY
 			DECLARE @Consulta nvarchar(MAX)
-
+			-- Creamos la tabla temporal 
 			CREATE TABLE #SucursalTemporal
 			(
 				ciudad varchar (15),
@@ -205,7 +210,7 @@ BEGIN
 				horario varchar(50),
 				telefono varchar(9) check (telefono like '5555-555[0-9]')
 			) 
-
+			-- Generamos la consulta para importar el archivo
 			SET @Consulta = N'
 				INSERT INTO #SucursalTemporal(ciudad,reemplazadaX,direccion,horario,telefono)
 				SELECT *
@@ -213,17 +218,17 @@ BEGIN
 				''Microsoft.ACE.OLEDB.12.0'',
 				''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'',
 				''SELECT * FROM ['+@nombreHoja+']'');'
+			--Ejecutamos la consulta para importar el archivo a la tabla temporal 
 			EXEC sp_executesql @Consulta 
-
 			SELECT * FROM #SucursalTemporal
-			
-
+			--Insertamos en nuestra tabla la informacion ue contiene la tabla temporal 
 			INSERT INTO Info.Sucursal(ciudad,reemplazadaX,direccion,horario,telefono)
-			SELECT * FROM #SucursalTemporal
+			SELECT * FROM #SucursalTemporal st
+			WHERE NOT EXISTS (SELECT 1 FROM Info.Sucursal s WHERE s.ciudad=st.ciudad and s.direccion=st.direccion) -- Funciona para que las sucursales que figuran en la tabla no se dupliquen 
 
+			--Elimamos la tabla temporal 
 			PRINT 'Los datos se insertaron exitosamente' 
 			DROP TABLE #SucursalTemporal
-		
  END TRY 
  BEGIN CATCH 
   PRINT 'No se pudo importar la informacion de las sucursales ' + @RutaArchivo 
@@ -242,7 +247,7 @@ AS
 BEGIN
  BEGIN TRY
 			DECLARE @Consulta nvarchar(MAX)
-
+			--Creamos la tabla temporal 
 			CREATE TABLE #EmpleadosTemporal
 			(
 				idEmpleado int,
@@ -256,7 +261,7 @@ BEGIN
 				sucursal varchar(60) check (sucursal IN ('San Justo','Ramos Mejia','Lomas del Mirador')),
 				turno varchar(25)
 			) 
-
+			--Generamos la consulta para importar el archivo 
 			SET @Consulta = N'
 				INSERT INTO #EmpleadosTemporal(idEmpleado,nombre,apellido,dni,direccion,emailPesonal,emailEmpresa,cargo,sucursal,turno)
 				SELECT [Legajo/ID],Nombre,Apellido,DNI,Direccion,[email personal],[email empresa],Cargo,Sucursal,Turno
@@ -264,19 +269,19 @@ BEGIN
 				''Microsoft.ACE.OLEDB.12.0'',
 				''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'',
 				''SELECT * FROM ['+@nombreHoja+']'');'
+			--Ejecutamos la consulta 
 			EXEC sp_executesql @Consulta 
 
 			SELECT * FROM #EmpleadosTemporal
-
-
+			--Insertamos en nuestra tabla la informacion que contiene la tabla temporal 
 			INSERT INTO Info.Empleado(nombre,apellido,dni,direccion,emailPesonal,emailEmpresa,cargo,sucursal,turno,idSucursal)
 			SELECT nombre,apellido,dni,direccion,emailPesonal,emailEmpresa,cargo,sucursal,turno,
 			 (SELECT idSucursal FROM Info.Sucursal suc WHERE suc.reemplazadaX = empTemp.sucursal) as idSucursal
 			 FROM #EmpleadosTemporal empTemp
-
+			 WHERE NOT EXISTS (SELECT 1 FROM Info.Empleado e WHERE empTemp.dni= e.dni) AND empTemp.idEmpleado IS NOT NULL --Evitamos duplicados y basura del archivo 
+			--Eliminamos la tabla temporal 
 			PRINT 'Los datos se insertaron exitosamente' 
-			DROP TABLE #EmpleadosTemporal
-		
+			DROP TABLE #EmpleadosTemporal		
  END TRY 
  BEGIN CATCH 
   PRINT 'No se pudieron importar los empleados ' + @RutaArchivo 
@@ -298,7 +303,6 @@ BEGIN
 
 		DECLARE @Consulta nvarchar(max)
 		
-
         -- Definición de la tabla temporal #VentasRegistradas
 			DROP TABLE IF EXISTS #VentasRegistradas;
             CREATE TABLE #VentasRegistradas
@@ -315,9 +319,9 @@ BEGIN
                 hora TIME,
                 medioPago VARCHAR(100),
                 idEmpleado INT,
-                idIdentificadorPago VARCHAR(100)
+                identificadorPago VARCHAR(100)
             );
-
+		--Generamos la consulta del BULK INSERT 
 		SET @Consulta = 'BULK INSERT #VentasRegistradas
                          FROM ''' + @RutaArchivo + '''
                          WITH (
@@ -331,12 +335,30 @@ BEGIN
         -- Seleccionar los datos importados para verificar
         SELECT * FROM #VentasRegistradas;
 
+		-- Insertamos en la tabla ventas
+		INSERT INTO Ven.Registrada(idFactura, tipoFactura,ciudad,tipoCliente,genero,lineaProducto,precioUnitario,cantidad,total,fecha,hora,medioPago,idEmpleado,identificadorPago,idSucursal, idImportado,idElectronico, idCatalogo)
+		SELECT v.idFactura, v.tipoFactura,v.ciudad,v.tipoCliente,v.genero,v.lineaProducto,v.precioUnitario,v.cantidad, v.precioUnitario * v.cantidad AS total ,v.fecha,v.hora,v.medioPago,v.idEmpleado,v.identificadorPago, s.idSucursal, i.idImportado, e.idElectronico, c.idCatalogo
+			FROM #VentasRegistradas v
+		LEFT JOIN Info.Sucursal s ON s.ciudad= v.ciudad
+		LEFT JOIN Prod.Importado i ON i.nombre= v.lineaProducto		--Hacemos los JOIN para enlazar las tablas
+		LEFT JOIN Prod.Electronico e ON e.nombre= v.lineaProducto
+		LEFT JOIN  (SELECT DISTINCT nombre, idCatalogo FROM Prod.Catalogo) c ON c.nombre = v.lineaProducto
+		WHERE NOT EXISTS (SELECT 1 FROM Ven.Registrada r WHERE r.idFactura=v.idFactura) --Evitamos facturas duplicadas 
+
+		-- Eliminamos la tabla temporal ya que no la necesitaremos la informacion almacenada alli
 		DROP TABLE #VentasRegistradas
  END TRY
  BEGIN CATCH
 	PRINT 'Error al importar los datos de ventas: ' + ERROR_MESSAGE();
  END CATCH
 END;
-
-EXECUTE Ven.importarVentas 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS01\TRABAJO PRACTICO\TP_integrador_Archivos\Ventas_registradas.csv'
-
+GO
+EXECUTE Ven.importarVentas 'C:\Users\tomas\Documents\GitHub\Supermercado\Grupo_03\TP_integrador_Archivos\Ventas_registradas.csv'
+GO
+SELECT * FROM Ven.Registrada
+GO
+WITH eliminar_facturas_duplicadas AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY idFactura ORDER BY idFactura) AS NumeroFila   --HACEMOS UN CTE PARA ELIMINAR LAS FACTURAS DUPLICADAS DEBIDO A QUE LAS CLAVE FORANEAS GENERAN UNA NUEVA FILA		
+    FROM Ven.Registrada																		--CON LA MISMA INFORMACION POR CULPA DEL CATALOGO.CSV, DONDE HAY PRODUCTOS CON  EL MISMO NOMBRE EN VARIAS FILAS
+)
+DELETE FROM eliminar_facturas_duplicadas WHERE NumeroFila > 1;
