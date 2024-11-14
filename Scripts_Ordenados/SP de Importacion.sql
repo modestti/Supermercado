@@ -276,30 +276,31 @@ GO
 CREATE OR ALTER PROCEDURE Ven.importarVentas (@RutaArchivo varchar(MAX)) 
 AS
 BEGIN
- BEGIN TRY
+    BEGIN TRY
 
-		DECLARE @Consulta nvarchar(max)
-		
+        DECLARE @Consulta nvarchar(max);
+        
         -- Definición de la tabla temporal #VentasRegistradas
-			DROP TABLE IF EXISTS #VentasRegistradas;
-            CREATE TABLE #VentasRegistradas
-            (
-                idFactura VARCHAR(100),
-                tipoFactura VARCHAR(100),
-                ciudad VARCHAR(100),
-                tipoCliente VARCHAR(100),
-                genero VARCHAR(100),
-                lineaProducto VARCHAR(100),
-                precioUnitario DECIMAL(10,2),
-                cantidad INT,
-                fecha DATE,
-                hora TIME,
-                medioPago VARCHAR(100),
-                idEmpleado INT,
-                identificadorPago VARCHAR(100)
-            );
-		--Generamos la consulta del BULK INSERT 
-		SET @Consulta = 'BULK INSERT #VentasRegistradas
+        DROP TABLE IF EXISTS #VentasRegistradas;
+        CREATE TABLE #VentasRegistradas
+        (
+            idFactura VARCHAR(100),
+            tipoFactura VARCHAR(100),
+            ciudad VARCHAR(100),
+            tipoCliente VARCHAR(100),
+            genero VARCHAR(100),
+            lineaProducto VARCHAR(100),
+            precioUnitario DECIMAL(10,2),
+            cantidad INT,
+            fecha DATE,
+            hora TIME,
+            medioPago VARCHAR(100),
+            idEmpleado INT,
+            identificadorPago VARCHAR(100)
+        );
+
+        -- Generamos la consulta del BULK INSERT 
+        SET @Consulta = 'BULK INSERT #VentasRegistradas
                          FROM ''' + @RutaArchivo + '''
                          WITH (
                              FIELDTERMINATOR = '';'',  -- Especifica el delimitador de campo como ;
@@ -312,21 +313,47 @@ BEGIN
         -- Seleccionar los datos importados para verificar
         SELECT * FROM #VentasRegistradas;
 
-		-- Insertamos en la tabla ventas
-		INSERT INTO Ven.Registrada(idFactura, tipoFactura,ciudad,tipoCliente,genero,lineaProducto,precioUnitario,cantidad,total,fecha,hora,medioPago,idEmpleado,identificadorPago,idSucursal, idImportado,idElectronico, idCatalogo)
-		SELECT v.idFactura, v.tipoFactura,v.ciudad,v.tipoCliente,v.genero,v.lineaProducto,v.precioUnitario,v.cantidad, v.precioUnitario * v.cantidad AS total ,v.fecha,v.hora,v.medioPago,v.idEmpleado,v.identificadorPago, s.idSucursal, i.idImportado, e.idElectronico, c.idCatalogo
-			FROM #VentasRegistradas v
-		LEFT JOIN Info.Sucursal s ON s.ciudad= v.ciudad
-		LEFT JOIN Prod.Importado i ON i.nombre= v.lineaProducto		--Hacemos los JOIN para enlazar las tablas
-		LEFT JOIN Prod.Electronico e ON e.nombre= v.lineaProducto
-		LEFT JOIN  (SELECT DISTINCT nombre, idCatalogo FROM Prod.Catalogo) c ON c.nombre = v.lineaProducto
-		WHERE NOT EXISTS (SELECT 1 FROM Ven.Registrada r WHERE r.idFactura=v.idFactura) --Evitamos facturas duplicadas 
+        -- Insertar en la tabla Factura en el esquema Ven
+        INSERT INTO Ven.Factura (IdFactura, Tipo_Factura, Numero_Factura, Fecha_De_Emision, Subtotal, MontoTotal)
+        SELECT DISTINCT 
+            v.idFactura,
+            v.tipoFactura,
+            v.idFactura AS Numero_Factura,
+            v.fecha AS Fecha_De_Emision,
+            v.precioUnitario * v.cantidad AS Subtotal,
+            v.precioUnitario * v.cantidad AS MontoTotal
+        FROM #VentasRegistradas v
+        WHERE NOT EXISTS (SELECT 1 FROM Ven.Factura f WHERE f.IdFactura = v.idFactura);
 
-		-- Eliminamos la tabla temporal ya que no la necesitaremos la informacion almacenada alli
-		DROP TABLE #VentasRegistradas
- END TRY
- BEGIN CATCH
-	PRINT 'Error al importar los datos de ventas: ' + ERROR_MESSAGE();
- END CATCH
+        -- Insertar en la tabla Venta en el esquema Ven
+        INSERT INTO Ven.Venta (IdVenta, Id_Empleado, Fecha, Hora, monto_total)
+        SELECT DISTINCT
+            NEWID() AS IdVenta,
+            v.idEmpleado,
+            v.fecha,
+            v.hora,
+            v.precioUnitario * v.cantidad AS monto_total
+        FROM #VentasRegistradas v
+        WHERE NOT EXISTS (SELECT 1 FROM Ven.Venta ve WHERE ve.Fecha = v.fecha AND ve.Hora = v.hora AND ve.Id_Empleado = v.idEmpleado);
+
+        -- Insertar en la tabla Detalle_Venta en el esquema Ven
+        INSERT INTO Ven.Detalle_Venta (IdProducto, IdVenta, Cantidad, Precio_unitario, Subtotal, Numero_factura)
+        SELECT 
+            c.IdCatalogo AS IdProducto,   -- Asocia IdProducto a IdCatalogo de Prod.Catalogo
+            v.idFactura AS IdVenta,       -- Relaciona cada venta con su factura
+            v.cantidad,
+            v.precioUnitario,
+            v.precioUnitario * v.cantidad AS Subtotal,
+            v.idFactura AS Numero_factura
+        FROM #VentasRegistradas v
+        INNER JOIN Prod.Catalogo c ON c.nombre = v.lineaProducto;  -- Relaciona con Prod.Catalogo por nombre
+
+        -- Eliminamos la tabla temporal ya que no la necesitaremos la información almacenada allí
+        DROP TABLE #VentasRegistradas;
+
+    END TRY
+    BEGIN CATCH
+        PRINT 'Error al importar los datos de ventas: ' + ERROR_MESSAGE();
+    END CATCH
 END;
 GO

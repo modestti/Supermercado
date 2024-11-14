@@ -11,6 +11,12 @@ GO
 -------------------------------------------------------------------------------------------------------------
 --------------------------------------------------SUCURSAL---------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
+-- Crear tabla Supermercado en el esquema Info
+CREATE TABLE Info.Supermercado (
+    CUIT CHAR(15) PRIMARY KEY,
+    nombre_supermercado VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE Info.Sucursal
 (
 	idSucursal int identity(1,1) primary key,
@@ -108,34 +114,43 @@ GO
 -------------------------------------------------------------------------------------------------------------
 ----------------------------------------- VENTAS REGISTRADAS ------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
-CREATE TABLE Ven.Registrada
-(
-	idVenta int identity(1,1) primary key,
-	idFactura char(11),
-	tipoFactura char check (tipoFactura IN ('A','B','C')),
-	ciudad varchar(100),
-	tipoCliente varchar(50),
-	genero varchar(20),
-	lineaProducto varchar(100),
-	precioUnitario decimal(10,2),
-	cantidad int check(cantidad>0),
-	total decimal(10,3),
-	fecha date,
-	hora time,
-	medioPago varchar(40),
-	idEmpleado int not null,
-	identificadorPago varchar(100),
 
-	---FOREIGN KEYS
-	idSucursal int,
-	idImportado int,
-	idElectronico int,
-	idCatalogo int,
-
-	CONSTRAINT FK_idEmpleado FOREIGN KEY (idEmpleado) REFERENCES Info.Empleado(idEmpleado),
-	CONSTRAINT FK_idSucursal FOREIGN KEY (idSucursal) REFERENCES Info.Sucursal(idSucursal),
-	CONSTRAINT FK_idImportado FOREIGN KEY (idImportado) REFERENCES Prod.Importado(idImportado),
-	CONSTRAINT FK_idElectronico FOREIGN KEY (idElectronico) REFERENCES Prod.Electronico(idElectronico),
-	CONSTRAINT FK_idCatalogo FOREIGN KEY (idCatalogo) REFERENCES Prod.Catalogo(idCatalogo)
+-- Crear tabla Factura en el esquema Ven
+CREATE TABLE Ven.Factura (
+    IdFactura INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre_Supermercado VARCHAR(255) NOT NULL,
+    CUIT CHAR(15) NOT NULL,
+    Tipo_Factura VARCHAR(50),
+    Numero_Factura CHAR(30),
+    IVA DECIMAL(3,2),
+    Fecha_De_Emision DATE DEFAULT GETDATE(),
+    Subtotal DECIMAL(10,2),
+    MontoTotal DECIMAL(10,2),
+    FOREIGN KEY (Nombre_Supermercado) REFERENCES Info.Supermercado(nombre_supermercado),
+    FOREIGN KEY (CUIT) REFERENCES Info.Supermercado(CUIT)
 );
-GO
+
+-- Crear tabla Venta en el esquema Ven
+CREATE TABLE Ven.Venta (
+    IdVenta INT IDENTITY(1,1) PRIMARY KEY,
+    Id_Sucursal INT,
+    Id_Empleado INT,
+    Fecha DATE,
+    Hora TIME,
+    monto_total DECIMAL(10,2),
+    FOREIGN KEY (Id_Sucursal) REFERENCES Info.Sucursal(IdSucursal),
+    FOREIGN KEY (Id_Empleado) REFERENCES Info.Empleado(IdEmpleado)
+);
+
+-- Crear tabla Detalle_Venta en el esquema Ven
+CREATE TABLE Ven.Detalle_Venta (
+    Id_Detalle_Venta INT IDENTITY(1,1) PRIMARY KEY,
+    IdProducto INT NOT NULL,
+    IdVenta INT NOT NULL,
+    Cantidad INT,
+    Precio_unitario DECIMAL(10,2),
+    Subtotal DECIMAL(10,2),
+    Numero_factura CHAR(30),
+    FOREIGN KEY (IdVenta) REFERENCES Ven.Venta(IdVenta),
+    FOREIGN KEY (IdProducto) REFERENCES Prod.Catalogo(IdCatalogo)  -- Clave foránea a Prod.Catalogo
+);
