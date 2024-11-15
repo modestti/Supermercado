@@ -27,15 +27,15 @@ CREATE OR ALTER PROCEDURE Info.nuevaSucursal( @ciudad varchar(100) ,@reemplazada
 											@direccion varchar(150), @horario varchar(100), @telefono varchar(10) )
 AS 
 BEGIN
-		-- Verificamos si ya existe un sucursal en la misma direccion y ciudad
-		IF NOT EXISTS (SELECT 1 FROM Info.Sucursal WHERE ciudad=@ciudad AND direccion=@direccion)
-		BEGIN 
-				--En el caso, que la sucursal nueva no exista en nuestra tabla. Insertamos
-				INSERT INTO Info.Sucursal (ciudad,reemplazadaX,direccion,horario,telefono)
-				VALUES ( @ciudad,@reemplazadaX,@direccion,@horario,@telefono)
-		END
+	-- Verificamos si ya existe un sucursal en la misma direccion y ciudad
+	IF NOT EXISTS (SELECT 1 FROM Info.Sucursal WHERE ciudad=@ciudad AND direccion=@direccion)
+	BEGIN 
+	--En el caso, que la sucursal nueva no exista en nuestra tabla. Insertamos
+	INSERT INTO Info.Sucursal (ciudad,reemplazadaX,direccion,horario,telefono)
+	VALUES ( @ciudad,@reemplazadaX,@direccion,@horario,@telefono)
+END;
 
-END
+GO
 EXECUTE Info.nuevaSucursal @Ciudad= 'Madrid',@reemplazadaX= 'Lomas del mirador', @direccion= 'Peribebuy 6000',@horario='24hs',@telefono='5555-5555'
 GO
 ------------------------------------------  CERRAR LA SUCURSAL ----------------------------------------------
@@ -100,18 +100,17 @@ BEGIN
 	DECLARE @idSucursal int
 	-- Buscamos el idSucursal
 	SELECT @idSucursal = idSucursal 
-    FROM Info.Sucursal 
-    WHERE reemplazadaX = @sucursal;
-    -- Verificamos si se encontró la sucursal
-    IF @idSucursal IS NULL
-    BEGIN
-        PRINT 'Sucursal no encontrada. Inserción cancelada.';
-        RETURN;
-    END
+    	FROM Info.Sucursal 
+    	WHERE reemplazadaX = @sucursal;
+    	-- Verificamos si se encontró la sucursal
+    	IF @idSucursal IS NULL
+    	BEGIN
+        	PRINT 'Sucursal no encontrada. Inserción cancelada.';
+        	RETURN;
+    	END
 	-- Insertamos el nuevo empleado
 	INSERT INTO Info.Empleado(nombre, apellido, dni, direccion, emailPesonal, emailEmpresa, cargo, sucursal, turno, idSucursal)
-    VALUES (@nombre, @apellido, @dni, @direccion, @emailPersonal, @emailEmpresa, @cargo, @sucursal, @turno, @idSucursal);
-
+    	VALUES (@nombre, @apellido, @dni, @direccion, @emailPersonal, @emailEmpresa, @cargo, @sucursal, @turno, @idSucursal);
 END;
 GO
 EXECUTE Info.nuevoEmpleado @nombre= 'Tomas', @apellido='Modestti', @dni= 45073572, @direccion='Peribebuy 4242', @emailEmpresa='tomas@empresa.com', 
@@ -127,18 +126,18 @@ BEGIN
 	DECLARE @IdEmpleado INT
 	--Busco el idSucursal por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
-    FROM Info.Empleado
-    WHERE dni = @dni;
+    	FROM Info.Empleado
+    	WHERE dni = @dni;
 	-- Verificamos si se encontró el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+	 	PRINT 'Empleado no encontrada.';
+        	RETURN;
 	END
 	-- Si se encontro actualizamos su cargo 
 	UPDATE Info.Empleado
-	 SET cargo=@nueCargo
-	 WHERE idEmpleado=@IdEmpleado
+	SET cargo=@nueCargo
+	WHERE idEmpleado=@IdEmpleado
 END;
 GO
 EXECUTE Info.nuevoCargoEmpleado @dni=45073572, @nueCargo= 'Gerente de sucursal'
@@ -152,18 +151,18 @@ BEGIN
 	DECLARE @IdEmpleado INT
 	--Busco el idSucursal por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
-    FROM Info.Empleado
-    WHERE dni = @dni;
+    	FROM Info.Empleado
+    	WHERE dni = @dni;
 	--Verificamos si se encontró el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+		PRINT 'Empleado no encontrada.';
+        	RETURN;
 	END
 	--Actualizamos el turno en el que encontraremos a ese empleado trabajando
 	UPDATE Info.Empleado
-	 SET turno=@turno
-	 WHERE idEmpleado=@IdEmpleado
+	SET turno=@turno
+	WHERE idEmpleado=@IdEmpleado
 END;
 GO
 EXECUTE Info.cambioTurnoEmpleado @dni=45073572, @turno= 'T'
@@ -173,16 +172,16 @@ GO
 CREATE OR ALTER PROCEDURE Info.despedirEmpleado (@dni int)
 AS
 BEGIN
-
+	
 	DECLARE @IdEmpleado INT
 	-- Busco el idSucursal por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
-    FROM Info.Empleado
-    WHERE dni = @dni;
+    	FROM Info.Empleado
+    	WHERE dni = @dni;
 	-- Verifico si se encontro el IdEmpleado 
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
+	 	PRINT 'Empleado no encontrada.';
         RETURN;
 	END
 	-- Borramos el empleado
@@ -198,9 +197,9 @@ GO
 CREATE OR ALTER PROCEDURE Prod.ingresarCatalogo (@categoria varchar(100), @nombre varchar(100), @precio decimal(10,2))
 AS
 BEGIN	
-		--Insertamos el producto nuevo
-		IF NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto=@nombre AND fecha=GETDATE()) 
-			INSERT INTO Prod.Catalogo(categoria,nombreProducto,precioUnidad,fecha)VALUES(@categoria,@nombre,@precio,GETDATE())
+	--Insertamos el producto nuevo
+	IF NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto=@nombre AND fecha=GETDATE()) 
+		INSERT INTO Prod.Catalogo(categoria,nombreProducto,precioUnidad,fecha)VALUES(@categoria,@nombre,@precio,GETDATE())
 END;
 GO
 
@@ -243,8 +242,8 @@ GO
 CREATE OR ALTER PROCEDURE Prod.eliminarImportado (@idImportado int)
 AS
 BEGIN 
-		DELETE FROM Prod.Importado
-		WHERE idImportado=@idImportado
+	DELETE FROM Prod.Importado
+	WHERE idImportado=@idImportado
 END;
 GO
 
@@ -253,8 +252,8 @@ CREATE OR ALTER PROCEDURE Prod.nuePrecioImportado (@idImportado int, @precioUnid
 AS
 BEGIN
 	UPDATE Prod.Importado 
-	 SET precioUnidad=@precioUnidad
-	 WHERE idImportado=@idImportado
+	SET precioUnidad=@precioUnidad
+	WHERE idImportado=@idImportado
 END;
 GO
 
