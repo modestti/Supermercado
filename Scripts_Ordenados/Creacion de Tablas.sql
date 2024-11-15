@@ -1,3 +1,4 @@
+CREATE DATABASE Com5600G03
 USE Com5600G03
 GO
 
@@ -80,16 +81,12 @@ GO
 -------------------------------------------------------------------------------------------------------------
 CREATE TABLE Prod.Catalogo 
 (
-	idCatalogo int identity(1,1) primary key,
-	categoria varchar(100) not null,
-	nombre varchar(100),
-	precio decimal(10,2),
-	referenciaPrecio decimal(10,2),
-	referenciaUnidad varchar(10),
-	fecha_hora datetime,
-	idProductoCat int,
-
-	CONSTRAINT FK_idCatalogo FOREIGN KEY(idProductoCat) REFERENCES Prod.Clasificacion(idProducto)
+	idProducto int identity(1,1) primary key,
+	nombreProducto varchar(150),
+	categoria varchar(50),
+	precioUnidad decimal(10,2), 
+	fecha datetime,
+	CONSTRAINT FK_idCatalogo FOREIGN KEY(idProducto) REFERENCES Prod.Clasificacion(idProducto)
 );
 GO
 
@@ -119,43 +116,57 @@ GO
 -------------------------------------------------------------------------------------------------------------
 ----------------------------------------- VENTAS REGISTRADAS ------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
--- Crear tabla Factura en el esquema Ven
-CREATE TABLE Ven.Factura (
+-- Creamos tabla Factura en el esquema Ven
+DROP TABLE Ven.Factura (
     IdFactura INT IDENTITY(1,1) PRIMARY KEY,
-    Nombre_Supermercado VARCHAR(255) NOT NULL,
-    CUIT CHAR(15) NOT NULL,
     Tipo_Factura VARCHAR(50),
-    Numero_Factura CHAR(30),
+    Numero_Factura VARCHAR(50),
     IVA DECIMAL(3,2),
-    Fecha_De_Emision DATE DEFAULT GETDATE(),
+    Fecha_De_Emision DATE,
     Subtotal DECIMAL(10,2),
     MontoTotal DECIMAL(10,2),
-    FOREIGN KEY (CUIT, Nombre_Supermercado) REFERENCES Info.Supermercado(CUIT, nombre_supermercado)  -- Clave foránea compuesta
+	Estado VARCHAR(50)
 );
+GO
 
--- Crear tabla Venta en el esquema Ven con IdFactura como clave foránea
+-- Creamos la tabla Venta en el esquema Ven con IdFactura como clave foránea
 CREATE TABLE Ven.Venta (
     IdVenta INT IDENTITY(1,1) PRIMARY KEY,
     Id_Sucursal INT,
     Id_Empleado INT,
-    IdFactura INT,  -- Nueva columna como clave foránea a Ven.Factura
+    IdFactura INT,
+	IdMedioPago INT,
     Fecha DATE,
     Hora TIME,
     monto_total DECIMAL(10,2),
     FOREIGN KEY (Id_Sucursal) REFERENCES Info.Sucursal(IdSucursal),
     FOREIGN KEY (Id_Empleado) REFERENCES Info.Empleado(IdEmpleado),
-    FOREIGN KEY (IdFactura) REFERENCES Ven.Factura(IdFactura)  -- Clave foránea a Ven.Factura
+    FOREIGN KEY (IdFactura) REFERENCES Ven.Factura(IdFactura),  -- Clave foránea a Ven.Factura
+	FOREIGN KEY (IdMedioPago) REFERENCES Info.MedioPago(idPago)
 );
+GO
 
--- Crear tabla Detalle_Venta en el esquema Ven
+-- Creamos la tabla Detalle_Venta en el esquema Ven
 CREATE TABLE Ven.Detalle_Venta (
     Id_Detalle_Venta INT IDENTITY(1,1) PRIMARY KEY,
-    IdProducto INT NOT NULL,
-    IdVenta INT NOT NULL,
+    IdProducto INT ,
+    IdVenta INT,
     Cantidad INT,
     Precio_unitario DECIMAL(10,2),
     Subtotal DECIMAL(10,2),
     Numero_factura CHAR(30),
     FOREIGN KEY (IdVenta) REFERENCES Ven.Venta(IdVenta),
-    FOREIGN KEY (IdProducto) REFERENCES Prod.Catalogo(IdCatalogo)  -- Clave foránea a Prod.Catalogo
+    FOREIGN KEY (IdProducto) REFERENCES Prod.Catalogo(IdProducto) -- Clave foránea a Prod.Catalogo
 );
+GO
+
+--Creamos la tabla de Nota de Credito
+CREATE TABLE Ven.Nota_De_Credito
+( 
+	IdNotaCredito INT IDENTITY(1,1) PRIMARY KEY,
+	IdFactura int,
+	Valor decimal(10,2),
+	Fecha_emision datetime,
+	FOREIGN KEY (IdFactura) REFERENCES Ven.Factura(IdFactura)
+);
+GO

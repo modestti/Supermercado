@@ -1,27 +1,6 @@
 USE Com5600G03
 GO
 
---INSERTAR SUPERMERCADO--
-CREATE PROCEDURE InsertarSupermercado
-    @CUIT CHAR(15),
-    @nombre_supermercado VARCHAR(255)
-AS
-BEGIN
-    BEGIN TRY
-        -- Inserta un nuevo registro en la tabla Info.Supermercado
-        INSERT INTO Info.Supermercado (CUIT, nombre_supermercado)
-        VALUES (@CUIT, @nombre_supermercado);
-
-        PRINT 'Inserción exitosa';
-    END TRY
-    BEGIN CATCH
-        -- Manejo de errores
-        PRINT 'Error al insertar en la tabla Info.Supermercado';
-        PRINT ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
 ----------------------------------------- ABRIR NUEVA SUCURSAL ----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.nuevaSucursal( @ciudad varchar(100) ,@reemplazadaX varchar(100),
 											@direccion varchar(150), @horario varchar(100), @telefono varchar(10) )
@@ -36,7 +15,6 @@ BEGIN
 		END
 
 END
-EXECUTE Info.nuevaSucursal @Ciudad= 'Madrid',@reemplazadaX= 'Lomas del mirador', @direccion= 'Peribebuy 6000',@horario='24hs',@telefono='5555-5555'
 GO
 ------------------------------------------  CERRAR LA SUCURSAL ----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.cerrarSucursal (@idSucursal int, @ciudad varchar(100))
@@ -48,9 +26,6 @@ BEGIN
 
 END;
 GO
-EXECUTE Info.cerrarSucursal @idSucursal=1,@ciudad='Tokio'
-GO
-
 ------------------------------------------ ACTUALIZAR EL HORARIO DE LA SUCURSAL -----------------------------
 CREATE OR ALTER PROCEDURE Info.nuevoHorarioSucursal (@idSucursal int, @horario varchar(100))
 AS 
@@ -60,8 +35,6 @@ BEGIN
 		SET horario=@horario
 		WHERE idSucursal= @idSucursal
 END;
-GO
-EXECUTE Info.nuevoHorarioSucursal @idSucursal=1, @horario= 'Lu a Vi 9-18hs'
 GO
 
 ------------------------------------------ ACTUALIZAR EL TELEFONO DE LA SUCURSAL ----------------------------
@@ -73,11 +46,6 @@ BEGIN
 		SET telefono=@telefono
 		WHERE idSucursal= @idSucursal
 END;
-GO
-EXECUTE Info.nuevoTelefonoSucursal @idSucursal=1, @telefono= '5555-5558'
-
-GO
-DBCC CHECKIDENT('Info.Sucursal' , RESEED, 0)--Luego de probar los procedure, deberiamos eliminar las filas de prueba y debemos reiniciar el idSucursal
 GO
 
 ------------------------------------------- NUEVA CLASIFICACION ----------------------------------------------
@@ -114,10 +82,6 @@ BEGIN
 
 END
 GO
-EXECUTE Info.nuevoEmpleado @nombre= 'Tomas', @apellido='Modestti', @dni= 45073572, @direccion='Peribebuy 4242', @emailEmpresa='tomas@empresa.com', 
-							@emailPersonal= 'tomas.m@gmail.com', @cargo= 'Supervisor', @sucursal= 'Lomas del Mirador', @turno='M'
-GO
-
 
 --------------------------------- ACTUALIZACION DEL CARGO DE UN EMPLEADO ------------------------------------
 CREATE OR ALTER PROCEDURE Info.nuevoCargoEmpleado (@dni int, @nueCargo varchar(20))
@@ -141,8 +105,7 @@ BEGIN
 	 WHERE idEmpleado=@IdEmpleado
 END
 GO
-EXECUTE Info.nuevoCargoEmpleado @dni=45073572, @nueCargo= 'Gerente de sucursal'
-GO
+
 
 --------------------------------- ACTUALIZACION DEL TURNO DE UN EMPLEADO ------------------------------------
 CREATE OR ALTER PROCEDURE Info.cambioTurnoEmpleado (@dni int, @turno varchar(20))
@@ -165,8 +128,6 @@ BEGIN
 	 SET turno=@turno
 	 WHERE idEmpleado=@IdEmpleado
 END
-GO
-EXECUTE Info.cambioTurnoEmpleado @dni=45073572, @turno= 'T'
 GO
 
 -------------------------------------------- EMPLEADO DESPEDIDO ---------------------------------------------
@@ -191,18 +152,29 @@ END
 GO
 EXECUTE Info.despedirEmpleado @dni=45073572
 GO
-DBCC CHECKIDENT('Info.Empleado' , RESEED, 0)-- RESETEAMOS EL IdEmpleado
-GO
 
 -------------------------------------------- NUEVO PRODUCTO ------------------------------------------------
 CREATE OR ALTER PROCEDURE Prod.ingresarCatalogo (@categoria varchar(100), @nombre varchar(100), @precio decimal(10,2))
 AS
-BEGIN	
-		--Insertamos el producto nuevo
-		IF NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto=@nombre AND fecha=GETDATE()) 
-			INSERT INTO Prod.Catalogo(categoria,nombreProducto,precioUnidad,fecha)VALUES(@categoria,@nombre,@precio,GETDATE())
+BEGIN
+    -- Verificamos si el producto ya existe en la tabla Catalogo por nombre
+    IF NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto = @nombre)
+    BEGIN
+        -- Insertamos el producto en la tabla Catalogo
+        INSERT INTO Prod.Catalogo (nombreProducto, precioUnidad, fecha)
+        VALUES (@nombre, @precio, GETDATE());
+        PRINT 'Producto insertado correctamente en el catálogo.';
+		
+		INSERT INTO Prod.Clasificacion (lineaProducto)
+        VALUES (@categoria);  
+    END
+    ELSE
+    BEGIN
+        PRINT 'El producto ya existe en el catálogo.';
+    END
 END
 GO
+
 
 -------------------------------------------- ELIMINAR PRODUCTO ------------------------------------------------
 CREATE OR ALTER PROCEDURE Prod.eliminarCatalogo (@idCatalogo int)
@@ -259,87 +231,58 @@ END
 GO
 
 --------------------------------------- INGRESAR UNA VENTA -----------------------------------------
-CREATE OR ALTER PROCEDURE Ven.registrarVenta (
-    @idFactura CHAR(11),
-    @tipoFactura CHAR(1),
-    @ciudad VARCHAR(100),
-    @tipoCliente VARCHAR(50),
-    @genero VARCHAR(20),
-    @lineaProducto VARCHAR(100),
-    @precioUnitario DECIMAL(10,2),
-    @cantidad INT,
-    @medioPago VARCHAR(40),
-    @idEmpleado INT,
-    @identificadorPago VARCHAR(100),
-    @categoria VARCHAR(100),   
-    @referenciaPrecio DECIMAL(10,2), 
-    @referenciaUnidad VARCHAR(10),   
-    @idProductoCat INT                
-)
+CREATE OR ALTER PROCEDURE Ven.registrarVenta (@Id_Sucursal INT, @Id_Empleado INT, @IdFactura INT, @IdMedioPago INT, @Fecha DATE, @Hora TIME,
+												@IdProducto INT, @Cantidad INT,@Precio_unitario DECIMAL(10,2)) 
 AS
 BEGIN
-    DECLARE @idSucursal INT;
-    DECLARE @idImportado INT;
-    DECLARE @idElectronico INT;
-    DECLARE @idCatalogo INT;
+    DECLARE @IdVenta INT;
+    DECLARE @MontoTotal DECIMAL(10,2) = 0;
 
-    -- Obtener idSucursal basado en el empleado
-    SELECT @idSucursal = idSucursal
-    FROM Info.Empleado
-    WHERE idEmpleado = @idEmpleado;
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
-    -- Obtener idImportado basado en el nombre del producto
-    SELECT @idImportado = idImportado
-    FROM Prod.Importado
-    WHERE nombre = @lineaProducto;
+        SELECT @MontoTotal = SUM(@Cantidad * @Precio_unitario)
 
-    -- Obtener idElectronico basado en el nombre del producto
-    SELECT @idElectronico = idElectronico
-    FROM Prod.Electronico
-    WHERE nombre = @lineaProducto;
+        INSERT INTO Ven.Venta (Id_Sucursal, Id_Empleado, IdFactura, IdMedioPago, Fecha, Hora, monto_total)
+        VALUES (@Id_Sucursal, @Id_Empleado, @IdFactura, @IdMedioPago, @Fecha, @Hora, @MontoTotal);
 
-    -- Verificar si el producto ya existe en Prod.Catalogo
-    SELECT @idCatalogo = idCatalogo
-    FROM Prod.Catalogo
-    WHERE nombre = @lineaProducto;
+        SET @IdVenta = SCOPE_IDENTITY();  -- Obtiene el ID de la venta recién insertada
 
-    -- Si el producto no existe en Prod.Catalogo, insertarlo
-    IF @idCatalogo IS NULL
-    BEGIN
-        INSERT INTO Prod.Catalogo (categoria, nombre, precio, referenciaPrecio, referenciaUnidad, fecha_hora, idProductoCat)
-        VALUES (@categoria, @lineaProducto, @precioUnitario, @referenciaPrecio, @referenciaUnidad, GETDATE(), @idProductoCat);
+        INSERT INTO Ven.Detalle_Venta (IdProducto,IdVenta,Cantidad, Precio_unitario, Subtotal, Numero_factura)
+        VALUES(@IdProducto,@IdVenta,@Cantidad, @Precio_unitario,@Cantidad * @Precio_unitario, (SELECT Numero_Factura FROM Ven.Factura WHERE IdFactura = @IdFactura))
 
-        -- Obtener el idCatalogo recién insertado
-        SET @idCatalogo = SCOPE_IDENTITY();
-    END
-
-    -- Insertar la venta en Ven.Registrada
-    INSERT INTO Ven.Registrada (
-        idFactura, tipoFactura, ciudad, tipoCliente, genero, lineaProducto,
-        precioUnitario, cantidad, total, fecha, hora, medioPago, idEmpleado,
-        identificadorPago, idSucursal, idImportado, idElectronico, idCatalogo
-    )
-    VALUES (
-        @idFactura, @tipoFactura, @ciudad, @tipoCliente, @genero, @lineaProducto,
-        @precioUnitario, @cantidad, @precioUnitario * @cantidad, GETDATE(),
-        CONVERT(TIME, GETDATE()), @medioPago, @idEmpleado, @identificadorPago,
-        @idSucursal, @idImportado, @idElectronico, @idCatalogo
-    );
-
-    PRINT 'La venta ha sido registrada exitosamente.';
+        UPDATE Ven.Factura
+        SET MontoTotal = MontoTotal + @MontoTotal,
+            Estado = 'Completa'
+        WHERE IdFactura = @IdFactura;
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        PRINT 'Error al insertar la venta: ' + ERROR_MESSAGE();
+    END CATCH
 END;
 GO
 
 --------------------------------------- ELIMINAR VENTA -----------------------------------------
-CREATE OR ALTER PROCEDURE Ven.cancelarVenta (@idVenta INT, @NroFactura CHAR(30))
-AS 
+CREATE OR ALTER PROCEDURE Ven.cancelarVenta (@IdVenta INT)
+AS
 BEGIN
-    -- Actualizar fecha y hora a NULL cuando coinciden idVenta y Numero_Factura
-    UPDATE Ven.Venta
-    SET Fecha = NULL, Hora = NULL
-    FROM Ven.Venta
-    JOIN Ven.Factura ON Ven.Venta.IdFactura = Ven.Factura.IdFactura
-    WHERE Ven.Venta.IdVenta = @idVenta AND Ven.Factura.Numero_Factura = @NroFactura;
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
-    PRINT 'La venta ha sido cancelada exitosamente.';
+        DECLARE @IdFactura INT;
+        SELECT @IdFactura = (select IdFactura FROM Ven.Venta WHERE IdVenta = @IdVenta)
+
+        UPDATE Ven.Factura
+        SET Estado = 'Anulada'
+        WHERE IdFactura = @IdFactura;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        PRINT 'Error al realizar el borrado lógico de la venta: ' + ERROR_MESSAGE();
+    END CATCH
 END;
+GO
