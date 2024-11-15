@@ -1,6 +1,27 @@
 USE Com5600G03
 GO
 
+--INSERTAR SUPERMERCADO--
+CREATE PROCEDURE InsertarSupermercado
+    @CUIT CHAR(15),
+    @nombre_supermercado VARCHAR(255)
+AS
+BEGIN
+    BEGIN TRY
+        -- Inserta un nuevo registro en la tabla Info.Supermercado
+        INSERT INTO Info.Supermercado (CUIT, nombre_supermercado)
+        VALUES (@CUIT, @nombre_supermercado);
+
+        PRINT 'Inserción exitosa';
+    END TRY
+    BEGIN CATCH
+        -- Manejo de errores
+        PRINT 'Error al insertar en la tabla Info.Supermercado';
+        PRINT ERROR_MESSAGE();
+    END CATCH
+END;
+GO
+
 ----------------------------------------- ABRIR NUEVA SUCURSAL ----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.nuevaSucursal( @ciudad varchar(100) ,@reemplazadaX varchar(100),
 											@direccion varchar(150), @horario varchar(100), @telefono varchar(10) )
