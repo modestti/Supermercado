@@ -38,11 +38,6 @@ SELECT * FROM info.Empleado
 DBCC CHECKIDENT('Info.Empleado' , RESEED, 0)-- RESETEAMOS EL IdEmpleado
 GO
 
--------------------------------------------- NUEVO PRODUCTO ------------------------------------------------
--- Test 1: Insertar un nuevo producto
-EXEC Prod.ingresarCatalogo @categoria = 'Electrónica', @nombre = 'Audífonos', @precio = 50.00;
-SELECT * FROM Prod.Catalogo
-
 ------------------------------------------- ACTUALIZAR PRECIO -----------------------------------------------
 -- Caso 1: Actualizar el precio de un producto existente
 EXEC Prod.nuePrecioCatalogo @idCatalogo = 1, @nuePrecio = 120.00;
@@ -56,9 +51,9 @@ EXEC Prod.eliminarCatalogo @idCatalogo = 912;
 SELECT * FROM Prod.Catalogo
 --------------------------------------- INGRESAR PRODUCTO IMPORTADO -----------------------------------------
 EXEC Prod.ingresarImportado
-    @nombre = 'Cámara', 
+    @nombre = 'Cï¿½mara', 
     @proveedor = 'Sony', 
-    @categoria = 'Fotografía', 
+    @categoria = 'Fotografï¿½a', 
     @cantidadXUnidad = '1 unidad', 
     @precioUnidad = 500.00;
 
@@ -68,8 +63,6 @@ EXEC Prod.nuePrecioImportado @idImportado = 1, @precioUnidad = 650.00;
 SELECT * FROM Prod.Importado
 --------------------------------------- ELIMINAR PRODUCTO IMPORTADO -----------------------------------------
 EXEC Prod.eliminarImportado @idImportado = 1;
-
---------------------------------------- INGRESAR UNA VENTA -----------------------------------------
 --------------------------------------- ELIMINAR VENTA -----------------------------------------
 EXEC Ven.cancelarVenta @IdVenta = 1;
 
