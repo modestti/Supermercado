@@ -12,7 +12,7 @@ BEGIN
         INSERT INTO Info.Supermercado (CUIT, nombre_supermercado)
         VALUES (@CUIT, @nombre_supermercado);
 
-        PRINT 'Inserción exitosa';
+        PRINT 'InserciÃ³n exitosa';
     END TRY
     BEGIN CATCH
         -- Manejo de errores
@@ -86,7 +86,7 @@ AS
 BEGIN 
 	IF NOT EXISTS (SELECT 1 FROM Prod.Clasificacion WHERE producto=@producto)
 		INSERT INTO Prod.Clasificacion (lineaProducto,producto)VALUES (@lineaProducto,@producto)
-END
+END;
 
 
 ---------------------------------------------- NUEVO EMPLEADO -----------------------------------------------
@@ -102,17 +102,17 @@ BEGIN
 	SELECT @idSucursal = idSucursal 
     FROM Info.Sucursal 
     WHERE reemplazadaX = @sucursal;
-    -- Verificamos si se encontró la sucursal
+    -- Verificamos si se encontrÃ³ la sucursal
     IF @idSucursal IS NULL
     BEGIN
-        PRINT 'Sucursal no encontrada. Inserción cancelada.';
+        PRINT 'Sucursal no encontrada. InserciÃ³n cancelada.';
         RETURN;
     END
 	-- Insertamos el nuevo empleado
 	INSERT INTO Info.Empleado(nombre, apellido, dni, direccion, emailPesonal, emailEmpresa, cargo, sucursal, turno, idSucursal)
     VALUES (@nombre, @apellido, @dni, @direccion, @emailPersonal, @emailEmpresa, @cargo, @sucursal, @turno, @idSucursal);
 
-END
+END;
 GO
 EXECUTE Info.nuevoEmpleado @nombre= 'Tomas', @apellido='Modestti', @dni= 45073572, @direccion='Peribebuy 4242', @emailEmpresa='tomas@empresa.com', 
 							@emailPersonal= 'tomas.m@gmail.com', @cargo= 'Supervisor', @sucursal= 'Lomas del Mirador', @turno='M'
@@ -129,7 +129,7 @@ BEGIN
 	SELECT @IdEmpleado = IdEmpleado
     FROM Info.Empleado
     WHERE dni = @dni;
-	-- Verificamos si se encontró el empleado
+	-- Verificamos si se encontrÃ³ el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
 	 PRINT 'Empleado no encontrada.';
@@ -139,7 +139,7 @@ BEGIN
 	UPDATE Info.Empleado
 	 SET cargo=@nueCargo
 	 WHERE idEmpleado=@IdEmpleado
-END
+END;
 GO
 EXECUTE Info.nuevoCargoEmpleado @dni=45073572, @nueCargo= 'Gerente de sucursal'
 GO
@@ -154,7 +154,7 @@ BEGIN
 	SELECT @IdEmpleado = IdEmpleado
     FROM Info.Empleado
     WHERE dni = @dni;
-	--Verificamos si se encontró el empleado
+	--Verificamos si se encontrÃ³ el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
 	 PRINT 'Empleado no encontrada.';
@@ -164,7 +164,7 @@ BEGIN
 	UPDATE Info.Empleado
 	 SET turno=@turno
 	 WHERE idEmpleado=@IdEmpleado
-END
+END;
 GO
 EXECUTE Info.cambioTurnoEmpleado @dni=45073572, @turno= 'T'
 GO
@@ -187,7 +187,7 @@ BEGIN
 	END
 	-- Borramos el empleado
 	DELETE Info.Empleado WHERE idEmpleado=@IdEmpleado
-END		
+END;		
 GO
 EXECUTE Info.despedirEmpleado @dni=45073572
 GO
@@ -201,7 +201,7 @@ BEGIN
 		--Insertamos el producto nuevo
 		IF NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto=@nombre AND fecha=GETDATE()) 
 			INSERT INTO Prod.Catalogo(categoria,nombreProducto,precioUnidad,fecha)VALUES(@categoria,@nombre,@precio,GETDATE())
-END
+END;
 GO
 
 -------------------------------------------- ELIMINAR PRODUCTO ------------------------------------------------
@@ -210,7 +210,7 @@ AS
 BEGIN
 	--Elinamos el producto
 	DELETE FROM Prod.Catalogo WHERE idProducto=@idCatalogo
-END
+END;
 GO
 
 
@@ -226,7 +226,7 @@ BEGIN
 		SET precioUnidad=@nuePrecio, fecha=GETDATE()
 		WHERE idProducto=@idCatalogo
 	END
-END
+END;
 GO
 
 --------------------------------------- INGRESAR PRODUCTO IMPORTADO -----------------------------------------
@@ -236,7 +236,7 @@ AS
 BEGIN
 	INSERT INTO Prod.Importado(nombre,proveedor,categoria,cantidadXUnidad,precioUnidad)
 	VALUES (@nombre,@proveedor,@categoria,@cantidadXUnidad,@precioUnidad)
-END
+END;
 GO
 
 --------------------------------------- ELIMINAR PRODUCTO IMPORTADO -----------------------------------------
@@ -245,7 +245,7 @@ AS
 BEGIN 
 		DELETE FROM Prod.Importado
 		WHERE idImportado=@idImportado
-END
+END;
 GO
 
 ---------------------------------- ACTUALIZAR PRECIO PRODUCTO IMPORTADO -------------------------------------
@@ -255,7 +255,7 @@ BEGIN
 	UPDATE Prod.Importado 
 	 SET precioUnidad=@precioUnidad
 	 WHERE idImportado=@idImportado
-END
+END;
 GO
 
 --------------------------------------- INGRESAR UNA VENTA -----------------------------------------
@@ -309,7 +309,7 @@ BEGIN
         INSERT INTO Prod.Catalogo (categoria, nombre, precio, referenciaPrecio, referenciaUnidad, fecha_hora, idProductoCat)
         VALUES (@categoria, @lineaProducto, @precioUnitario, @referenciaPrecio, @referenciaUnidad, GETDATE(), @idProductoCat);
 
-        -- Obtener el idCatalogo recién insertado
+        -- Obtener el idCatalogo reciÃ©n insertado
         SET @idCatalogo = SCOPE_IDENTITY();
     END
 
