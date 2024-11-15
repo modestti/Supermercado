@@ -19,6 +19,8 @@ CREATE OR ALTER PROCEDURE Prod.importarProductosElectronicos (@RutaArchivo NVARC
 AS 
 BEGIN  
 			DECLARE @Consulta nvarchar(MAX)
+			DECLARE @Categoria varchar(50) ='Electronica'
+			
 			--Creamos la tabla temporal donde vamos a descargar nuestro archivo
 			CREATE TABLE #ElectronicoTemporal
 			(
@@ -33,22 +35,23 @@ BEGIN
 						FROM OPENROWSET(
 								''Microsoft.ACE.OLEDB.12.0'',
 								''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'', --Especifica que es un archivo Excel, la ruta del archivo, que hay encabezado y la hoja en la que se encuentran los datos
-								''SELECT * FROM ['+@nombreHoja+']'');'
+								''SELECT * FROM ['+@NombreHoja+']'');'
 			--Ejecutamos la consulta
 			EXEC sp_executesql @Consulta;
 
 			--Muestro la tabla temporal para verificar que la informacion se descargo exitosamente 
 			SELECT * FROM #ElectronicoTemporal;
-
+	
 			--Pasamos la informacion a nuestra tabla
-			INSERT INTO Prod.Electronico(nombre,precioDolares)
-				SELECT Product,Precio_Unitario_en_dolares FROM #ElectronicoTemporal
-			WHERE NOT EXISTS (SELECT 1 FROM Prod.Electronico WHERE nombre=Product)
+			INSERT INTO Prod.Catalogo(categoria,nombreProducto,precioUnidad,fecha)
+				SELECT @Categoria,Product,Precio_Unitario_en_dolares,GETDATE() FROM #ElectronicoTemporal
+			WHERE NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto=Product)
 
 			--Eliminamos la tabla temporal 
 			PRINT 'Los datos se insertaron exitosamente' 
 			DROP TABLE #ElectronicoTemporal
 END
+
 
 ------------------------------------------ PRODUCTOS IMPORTADOS ---------------------------------------------
 CREATE OR ALTER PROCEDURE Prod.importarProductosImportados (@RutaArchivo nvarchar(MAX), @NombreHoja nvarchar(50))
@@ -79,14 +82,14 @@ BEGIN
 			-- Verificamos si los datos se importaron finalmente a la tala temporal
 			SELECT * FROM #ImportadosTemporal
 			-- Insertamos a nuestra tabla, las filas que se encuentran en la tabla temporal
-			INSERT INTO Prod.Importado(nombre,proveedor,categoria,cantidadXUnidad,precioUnidad)
-			SELECT NombreProducto,Proveedor,Categoría,CantidadPorUnidad,PrecioUnidad FROM #ImportadosTemporal
+			INSERT INTO Prod.Catalogo(nombreProducto,categoria,precioUnidad,fecha)
+			SELECT NombreProducto,Categoría,PrecioUnidad,GETDATE() FROM #ImportadosTemporal it
+			WHERE NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto= it.NombreProducto)
 			-- Eliminamos la tabla temporal 
 			PRINT 'Los datos se insertaron exitosamente' 
 			DROP TABLE #ImportadosTemporal
 END 
 GO
-
 ---------------------------------------------- CATALOGO GENERAL ---------------------------------------------
 CREATE OR ALTER PROCEDURE Prod.importarCatalogo (@RutaArchivo nvarchar(MAX))
 AS 
@@ -124,9 +127,10 @@ BEGIN
 
 			-- Inserta en la tabla final de catalogo y casteamos los valores de varchar
 			DECLARE @idProdCat int 
-			INSERT Prod.Catalogo(categoria, nombre, precio, referenciaPrecio, referenciaUnidad, fecha_hora,idProductoCat)
-			SELECT ct.category,[name], TRY_CAST(ct.price AS decimal(10,2)), TRY_CAST(ct.reference_price AS decimal(10,2)), ct.reference_unit,ct.[date],c.IdProducto FROM #CatalogoTemporal ct 
+			INSERT Prod.Catalogo(categoria,nombreProducto,precioUnidad, fecha)
+			SELECT c.lineaProducto,[name], TRY_CAST(ct.price AS decimal(10,2)),ct.[date] FROM #CatalogoTemporal ct 
 			INNER JOIN  Prod.Clasificacion c on c.producto=ct.category
+			WHERE NOT EXISTS( SELECT 1 FROM Prod.Catalogo WHERE nombreProducto=[name] AND fecha=ct.[date])
 
             PRINT 'Los datos se insertaron exitosamente';
             DROP TABLE #CatalogoTemporal;
@@ -165,7 +169,8 @@ BEGIN
 			SELECT * FROM #ClasificacionTemporal
 			--Inserto en la tabla de clasificacion la informacion que se encuentra en la tabla temporal
 			INSERT INTO Prod.Clasificacion(lineaProducto,producto)
-			SELECT lineaProducto,producto FROM #ClasificacionTemporal
+			SELECT lineaProducto,producto FROM #ClasificacionTemporal ct
+			WHERE NOT EXISTS (SELECT 1 FROM Prod.Clasificacion c WHERE c.lineaProducto=ct.lineaProducto AND c.producto=ct.producto)
 
 			--Elimino la tabla temporal
 			PRINT 'Los datos se insertaron exitosamente' 
@@ -178,7 +183,6 @@ BEGIN
  END CATCH 
 END 
 GO
-
 -------------------------------------------------- SUCURSAL -------------------------------------------------
 CREATE OR ALTER PROCEDURE Info.importarSucursal (@RutaArchivo NVARCHAR(MAX), @NombreHoja NVARCHAR(50))
 AS 

@@ -1,3 +1,6 @@
+USE Com5600G03
+GO
+
 --CREACION DE ESQUEMAS
 CREATE SCHEMA Ven
 GO
@@ -13,9 +16,11 @@ GO
 -------------------------------------------------------------------------------------------------------------
 -- Crear tabla Supermercado en el esquema Info
 CREATE TABLE Info.Supermercado (
-    CUIT CHAR(15) PRIMARY KEY,
-    nombre_supermercado VARCHAR(255) NOT NULL
+    CUIT CHAR(15),
+    nombre_supermercado VARCHAR(255) NOT NULL,
+    PRIMARY KEY (CUIT, nombre_supermercado)
 );
+
 
 CREATE TABLE Info.Sucursal
 (
@@ -114,7 +119,6 @@ GO
 -------------------------------------------------------------------------------------------------------------
 ----------------------------------------- VENTAS REGISTRADAS ------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
-
 -- Crear tabla Factura en el esquema Ven
 CREATE TABLE Ven.Factura (
     IdFactura INT IDENTITY(1,1) PRIMARY KEY,
@@ -126,20 +130,21 @@ CREATE TABLE Ven.Factura (
     Fecha_De_Emision DATE DEFAULT GETDATE(),
     Subtotal DECIMAL(10,2),
     MontoTotal DECIMAL(10,2),
-    FOREIGN KEY (Nombre_Supermercado) REFERENCES Info.Supermercado(nombre_supermercado),
-    FOREIGN KEY (CUIT) REFERENCES Info.Supermercado(CUIT)
+    FOREIGN KEY (CUIT, Nombre_Supermercado) REFERENCES Info.Supermercado(CUIT, nombre_supermercado)  -- Clave foránea compuesta
 );
 
--- Crear tabla Venta en el esquema Ven
+-- Crear tabla Venta en el esquema Ven con IdFactura como clave foránea
 CREATE TABLE Ven.Venta (
     IdVenta INT IDENTITY(1,1) PRIMARY KEY,
     Id_Sucursal INT,
     Id_Empleado INT,
+    IdFactura INT,  -- Nueva columna como clave foránea a Ven.Factura
     Fecha DATE,
     Hora TIME,
     monto_total DECIMAL(10,2),
     FOREIGN KEY (Id_Sucursal) REFERENCES Info.Sucursal(IdSucursal),
-    FOREIGN KEY (Id_Empleado) REFERENCES Info.Empleado(IdEmpleado)
+    FOREIGN KEY (Id_Empleado) REFERENCES Info.Empleado(IdEmpleado),
+    FOREIGN KEY (IdFactura) REFERENCES Ven.Factura(IdFactura)  -- Clave foránea a Ven.Factura
 );
 
 -- Crear tabla Detalle_Venta en el esquema Ven
