@@ -1,7 +1,6 @@
 USE Com5600G03
 GO
 
-
 --CREACION DE ESQUEMAS
 CREATE SCHEMA Ven
 GO
@@ -25,22 +24,24 @@ CREATE TABLE Info.Sucursal
 	telefono varchar(9) check (telefono like '5555-555[0-9]')													--Nuestro telefono interno
 );
 GO
+	
 ----------------------------------------- ABRIR NUEVA SUCURSAL ----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.nuevaSucursal( @ciudad varchar(100) ,@reemplazadaX varchar(100),
-											@direccion varchar(150), @horario varchar(100), @telefono varchar(10) )
+					      	@direccion varchar(150), @horario varchar(100), @telefono varchar(10) )
 AS 
 BEGIN
-		-- Verificamos si ya existe un sucursal en la misma direccion y ciudad
-		IF NOT EXISTS (SELECT 1 FROM Info.Sucursal WHERE ciudad=@ciudad AND direccion=@direccion)
-		BEGIN 
-				--En el caso, que la sucursal nueva no exista en nuestra tabla. Insertamos
-				INSERT INTO Info.Sucursal (ciudad,reemplazadaX,direccion,horario,telefono)
-				VALUES ( @ciudad,@reemplazadaX,@direccion,@horario,@telefono)
-		END
+	-- Verificamos si ya existe un sucursal en la misma direccion y ciudad
+	IF NOT EXISTS (SELECT 1 FROM Info.Sucursal WHERE ciudad=@ciudad AND direccion=@direccion)
+	BEGIN 
+		--En el caso, que la sucursal nueva no exista en nuestra tabla. Insertamos
+		INSERT INTO Info.Sucursal (ciudad,reemplazadaX,direccion,horario,telefono)
+		VALUES ( @ciudad,@reemplazadaX,@direccion,@horario,@telefono)
+	END
 
 END
 EXECUTE Info.nuevaSucursal @Ciudad= 'Madrid',@reemplazadaX= 'Lomas del mirador', @direccion= 'Peribebuy 6000',@horario='24hs',@telefono='5555-5555'
-GO
+GO	
+	
 ------------------------------------------  CERRAR LA SUCURSAL ----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.cerrarSucursal (@idSucursal int, @ciudad varchar(100))
 AS
@@ -53,7 +54,7 @@ END;
 GO
 EXECUTE Info.cerrarSucursal @idSucursal=1,@ciudad='Tokio'
 GO
-
+	
 ------------------------------------------ ACTUALIZAR EL HORARIO DE LA SUCURSAL -----------------------------
 CREATE OR ALTER PROCEDURE Info.nuevoHorarioSucursal (@idSucursal int, @horario varchar(100))
 AS 
@@ -107,54 +108,51 @@ GO
 
 ---------------------------------------------- NUEVO EMPLEADO -----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.nuevoEmpleado (@nombre varchar(50), @apellido varchar(50), @dni int,
-											@direccion varchar(100),@emailPersonal varchar(100),
-											@emailEmpresa varchar(100), @cargo varchar(30), @sucursal varchar(20),
-											@turno varchar(25))
+					      @direccion varchar(100),@emailPersonal varchar(100),
+					      @emailEmpresa varchar(100), @cargo varchar(30), @sucursal varchar(20),
+					      @turno varchar(25))
 AS
 BEGIN
-	
 	DECLARE @idSucursal int
 	-- Buscamos el idSucursal
 	SELECT @idSucursal = idSucursal 
-    FROM Info.Sucursal 
-    WHERE reemplazadaX = @sucursal;
-    -- Verificamos si se encontró la sucursal
-    IF @idSucursal IS NULL
-    BEGIN
-        PRINT 'Sucursal no encontrada. Inserción cancelada.';
-        RETURN;
-    END
+    	FROM Info.Sucursal 
+    	WHERE reemplazadaX = @sucursal;
+    	-- Verificamos si se encontrÃ³ la sucursal
+    	IF @idSucursal IS NULL
+    	BEGIN
+		PRINT 'Sucursal no encontrada. InserciÃ³n cancelada.';
+        	RETURN;
+    	END
 	-- Insertamos el nuevo empleado
 	INSERT INTO Info.Empleado(nombre, apellido, dni, direccion, emailPesonal, emailEmpresa, cargo, sucursal, turno, idSucursal)
-    VALUES (@nombre, @apellido, @dni, @direccion, @emailPersonal, @emailEmpresa, @cargo, @sucursal, @turno, @idSucursal);
+    	VALUES (@nombre, @apellido, @dni, @direccion, @emailPersonal, @emailEmpresa, @cargo, @sucursal, @turno, @idSucursal);
 
 END
 GO
 EXECUTE Info.nuevoEmpleado @nombre= 'Tomas', @apellido='Modestti', @dni= 45073572, @direccion='Peribebuy 4242', @emailEmpresa='tomas@empresa.com', 
-							@emailPersonal= 'tomas.m@gmail.com', @cargo= 'Supervisor', @sucursal= 'Lomas del Mirador', @turno='M'
+			   @emailPersonal= 'tomas.m@gmail.com', @cargo= 'Supervisor', @sucursal= 'Lomas del Mirador', @turno='M'
 GO
-
 
 --------------------------------- ACTUALIZACION DEL CARGO DE UN EMPLEADO ------------------------------------
 CREATE OR ALTER PROCEDURE Info.nuevoCargoEmpleado (@dni int, @nueCargo varchar(20))
 AS
 BEGIN
-	
 	DECLARE @IdEmpleado INT
 	--Busco el idSucursal por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
-    FROM Info.Empleado
-    WHERE dni = @dni;
-	-- Verificamos si se encontró el empleado
+    	FROM Info.Empleado
+    	WHERE dni = @dni;
+	-- Verificamos si se encontrÃ³ el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+	 	PRINT 'Empleado no encontrada.';
+        	RETURN;
 	END
 	-- Si se encontro actualizamos su cargo 
 	UPDATE Info.Empleado
-	 SET cargo=@nueCargo
-	 WHERE idEmpleado=@IdEmpleado
+		SET cargo=@nueCargo
+	 	WHERE idEmpleado=@IdEmpleado
 END
 GO
 EXECUTE Info.nuevoCargoEmpleado @dni=45073572, @nueCargo= 'Gerente de sucursal'
@@ -168,18 +166,18 @@ BEGIN
 	DECLARE @IdEmpleado INT
 	--Busco el idSucursal por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
-    FROM Info.Empleado
-    WHERE dni = @dni;
-	--Verificamos si se encontró el empleado
+    	FROM Info.Empleado
+    	WHERE dni = @dni;
+	--Verificamos si se encontrÃ³ el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+	 	PRINT 'Empleado no encontrada.';
+        	RETURN;
 	END
 	--Actualizamos el turno en el que encontraremos a ese empleado trabajando
 	UPDATE Info.Empleado
-	 SET turno=@turno
-	 WHERE idEmpleado=@IdEmpleado
+	 	SET turno=@turno
+		WHERE idEmpleado=@IdEmpleado
 END
 GO
 EXECUTE Info.cambioTurnoEmpleado @dni=45073572, @turno= 'T'
@@ -193,13 +191,13 @@ BEGIN
 	DECLARE @IdEmpleado INT
 	-- Busco el idSucursal por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
-    FROM Info.Empleado
-    WHERE dni = @dni;
+    	FROM Info.Empleado
+    	WHERE dni = @dni;
 	-- Verifico si se encontro el IdEmpleado 
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+	 	PRINT 'Empleado no encontrada.';
+        	RETURN;
 	END
 	-- Borramos el empleado
 	DELETE Info.Empleado WHERE idEmpleado=@IdEmpleado
@@ -209,6 +207,7 @@ EXECUTE Info.despedirEmpleado @dni=45073572
 GO
 DBCC CHECKIDENT('Info.Empleado' , RESEED, 0)-- RESETEAMOS EL IdEmpleado
 GO
+		
 -------------------------------------------------------------------------------------------------------------
 ------------------------------------------- MEDIO DE PAGO ---------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
@@ -219,6 +218,7 @@ CREATE TABLE Info.MedioPago
 	nombre varchar(50)
 );
 GO
+	
 -------------------------------------------------------------------------------------------------------------
 ------------------------------------------- CLASIFICACION ---------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
@@ -248,20 +248,19 @@ CREATE TABLE Prod.Catalogo
 );
 GO
 
-
 -------------------------------------------- NUEVO PRODUCTO ------------------------------------------------
 CREATE OR ALTER PROCEDURE Prod.ingresarCatalogo (@categoria varchar(100), @nombre varchar(100), @precio decimal(10,2),
-											@referenciaPrecio decimal(10,2), @referenciaUnidad char(2))
+						 @referenciaPrecio decimal(10,2), @referenciaUnidad char(2))
 AS
 BEGIN
-		DECLARE @IdProducto INT
-		--Buscamos idProducto en la tabla Prod.Clasificacion
-		SELECT  @IdProducto=idProducto
-		FROM Prod.Clasificacion
-		WHERE producto= @categoria
-		--Insertamos el producto nuevo
-		INSERT INTO Prod.Catalogo(categoria,nombre,precio,referenciaPrecio,referenciaUnidad,fecha_hora,idProducto)
-		VALUES(@categoria,@nombre,@precio,@referenciaPrecio,@referenciaUnidad,GETDATE(),@IdProducto)
+	DECLARE @IdProducto INT
+	--Buscamos idProducto en la tabla Prod.Clasificacion
+	SELECT  @IdProducto=idProducto
+	FROM Prod.Clasificacion
+	WHERE producto= @categoria
+	--Insertamos el producto nuevo
+	INSERT INTO Prod.Catalogo(categoria,nombre,precio,referenciaPrecio,referenciaUnidad,fecha_hora,idProducto)
+	VALUES(@categoria,@nombre,@precio,@referenciaPrecio,@referenciaUnidad,GETDATE(),@IdProducto)
 	
 END
 GO
@@ -312,7 +311,6 @@ BEGIN
 END
 GO
 
-
 --------------------------------------- ELIMINAR PRODUCTO ELECTRONICO ---------------------------------------
 CREATE OR ALTER PROCEDURE Prod.eliminarElectronico (@idElectronico int)
 AS 
@@ -351,7 +349,7 @@ GO
 
 --------------------------------------- INGRESAR PRODUCTO IMPORTADO -----------------------------------------
 CREATE OR ALTER PROCEDURE Prod.ingresarImportado (@nombre varchar(100), @proveedor varchar(100),
-											@categoria varchar(50),@cantidadXUnidad varchar(100), @precioUnidad decimal(10,2))
+						  @categoria varchar(50),@cantidadXUnidad varchar(100), @precioUnidad decimal(10,2))
 AS
 BEGIN
 	INSERT INTO Prod.Importado(nombre,proveedor,categoria,cantidadXUnidad,precioUnidad)
@@ -363,8 +361,8 @@ GO
 CREATE OR ALTER PROCEDURE Prod.eliminarImportado (@idImportado int)
 AS
 BEGIN 
-		DELETE FROM Prod.Importado
-		WHERE idImportado=@idImportado
+	DELETE FROM Prod.Importado
+	WHERE idImportado=@idImportado
 END
 GO
 
@@ -373,11 +371,10 @@ CREATE OR ALTER PROCEDURE Prod.nuePrecioImportado (@idImportado int, @precioUnid
 AS
 BEGIN
 	UPDATE Prod.Importado 
-	 SET precioUnidad=@precioUnidad
-	 WHERE idImportado=@idImportado
+		SET precioUnidad=@precioUnidad
+		WHERE idImportado=@idImportado
 END
 GO
-
 
 -------------------------------------------------------------------------------------------------------------
 ----------------------------------------- VENTAS REGISTRADAS ------------------------------------------------
@@ -416,7 +413,8 @@ GO
 
 --------------------------------------- INGRESAR UNA VENTA -----------------------------------------
 CREATE OR ALTER PROCEDURE Ven.registrarVenta (@idFactura char(11), @tipoFactura char, @ciudad varchar(100),@tipoCliente varchar(50),
-											@genero varchar(20),@lineaProducto varchar(100),@precioUnitario decimal(10,2),@cantidad int,@medioPago varchar(40),@idEmpleado int,@identificadorPago varchar(100))
+					      @genero varchar(20),@lineaProducto varchar(100),@precioUnitario decimal(10,2),@cantidad int,
+					      @medioPago varchar(40),@idEmpleado int,@identificadorPago varchar(100))
 AS
 BEGIN 
 	DECLARE @idSucursal int
@@ -441,13 +439,15 @@ BEGIN
 
 END
 GO
+	
 --------------------------------------- ELIMINAR VENTA -----------------------------------------
 CREATE OR ALTER PROCEDURE Ven.cancelarVenta (@idVenta int ,@idFactura char(11))
 AS 
 BEGIN 
-      UPDATE Ven.Registrada
-      SET  fecha = NULL, hora = NULL   
-      WHERE idFactura = @idFactura AND idVenta=@idVenta;
-      PRINT 'La venta ha sido cancelada exitosamente.';
+      	UPDATE Ven.Registrada
+      		SET  fecha = NULL, hora = NULL   
+      		WHERE idFactura = @idFactura AND idVenta=@idVenta;
+ 	
+	PRINT 'La venta ha sido cancelada exitosamente.';
 END;
 
