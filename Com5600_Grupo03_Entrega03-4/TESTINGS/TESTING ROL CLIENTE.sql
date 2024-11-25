@@ -1,0 +1,12 @@
+USE Com5600G03
+GO
+
+---PRUEBA DEL ROL CLIENTE---
+SELECT * FROM Prod.Catalogo
+GO
+--TENDRIA QUE FALLAR DADO QUE EL CLIENTE SOLO PUEDE VISUALIZAR EL CATALOGO
+EXECUTE Prod.ingresarCatalogo @categoria='Prueba', @nombre='Prueba', @precio=19
+GO
+SELECT * FROM Ven.Venta
+GO
+SELECT * FROM Info.Empleado

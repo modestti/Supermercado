@@ -6,6 +6,8 @@
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'Com5600G03')
     CREATE DATABASE Com5600G03;
 
+USE Com5600G03
+GO
 --ESQUEMA CREADO PARA LO RELACIONADO CON VENTAS
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Ven')
 		EXECUTE('CREATE SCHEMA Ven')
@@ -19,8 +21,8 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Info')
 		EXECUTE('CREATE SCHEMA Info')
 
 GO
-USE Com5600G03
-GO
+
+
 -----------------------------------------------------------------------------
 ------------------------- CREACION DE TABLAS --------------------------------
 -----------------------------------------------------------------------------
@@ -38,12 +40,12 @@ GO
 CREATE TABLE Info.Empleado
 (
 	idEmpleado int identity(257020,1) primary key, 
-	nombre nvarchar (100),
-	apellido nvarchar(100),
+	nombre varchar (100),
+	apellido varchar(100),
 	dni int,
 	direccion varchar(255),
-	emailPesonal nvarchar(100),
-	emailEmpresa nvarchar(100),
+	emailPesonal varchar(100),
+	emailEmpresa varchar(100),
 	cargo varchar(60) check (cargo IN ('Cajero','Supervisor','Gerente de sucursal')), --Son los tres puestos ue nuestro empleados pueden ocupar
 	sucursal varchar(60) check (sucursal IN ('San Justo','Ramos Mejia','Lomas del Mirador')), --Verificamos que no sean de una sucursal que este fuera del area que nosotros manejamos
 	turno varchar(30),

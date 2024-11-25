@@ -17,9 +17,7 @@ GO
 EXECUTE Info.nuevoTelefonoSucursal @idSucursal=1, @telefono= '5555-5558'
 GO
 SELECT * FROM INFO.Sucursal
-DBCC CHECKIDENT('Info.Sucursal' , RESEED, 0)--Luego de probar los procedure, deberiamos eliminar las filas de prueba y debemos reiniciar el idSucursal
 GO
-------------------------------------------- NUEVA CLASIFICACION ----------------------------------------------
 
 ---------------------------------------------- NUEVO EMPLEADO -----------------------------------------------
 EXECUTE Info.nuevoEmpleado @nombre= 'Tomas', @apellido='Modestti', @dni= 45073572, @direccion='Peribebuy 4242', @emailEmpresa='tomas@empresa.com', 
@@ -49,22 +47,12 @@ SELECT * FROM Prod.Catalogo
 -- Test 2: Arroja error por prod inexistente
 EXEC Prod.eliminarCatalogo @idCatalogo = 912;
 SELECT * FROM Prod.Catalogo
---------------------------------------- INGRESAR PRODUCTO IMPORTADO -----------------------------------------
-EXEC Prod.ingresarImportado
-    @nombre = 'C�mara', 
-    @proveedor = 'Sony', 
-    @categoria = 'Fotograf�a', 
-    @cantidadXUnidad = '1 unidad', 
-    @precioUnidad = 500.00;
 
-SELECT * FROM Prod.Importado
----------------------------------- ACTUALIZAR PRECIO PRODUCTO IMPORTADO -------------------------------------
-EXEC Prod.nuePrecioImportado @idImportado = 1, @precioUnidad = 650.00;
-SELECT * FROM Prod.Importado
---------------------------------------- ELIMINAR PRODUCTO IMPORTADO -----------------------------------------
-EXEC Prod.eliminarImportado @idImportado = 1;
---------------------------------------- ELIMINAR VENTA -----------------------------------------
+--------------------------------------------- ELIMINAR VENTA --------------------------------------------------
 EXEC Ven.cancelarVenta @IdVenta = 1;
 
-
-
+--------------------------------------------- NOTA DE CREDITO -------------------------------------------------
+EXECUTE Ven.nuevaNotaCredito @IdVenta=1000
+SELECT * FROM Ven.Venta
+SELECT * FROM Ven.Factura
+SELECT * FROM Ven.Nota_De_Credito

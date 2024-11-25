@@ -17,12 +17,13 @@ BEGIN
 END
 GO
 ------------------------------------------  CERRAR LA SUCURSAL ----------------------------------------------
-CREATE OR ALTER PROCEDURE Info.cerrarSucursal (@idSucursal int, @ciudad varchar(100))
+CREATE OR ALTER PROCEDURE Info.cerrarSucursal (@idSucursal int)
 AS
 BEGIN 
 	--Elinamos la sucursal 
-	DELETE FROM Info.Sucursal 
-	WHERE idSucursal=@idSucursal and ciudad=@ciudad
+	UPDATE Info.Sucursal
+		SET horario=NULL, direccion=NULL,ciudad=NULL
+		WHERE idSucursal= @idSucursal
 
 END;
 GO
@@ -54,8 +55,8 @@ AS
 BEGIN 
 	IF NOT EXISTS (SELECT 1 FROM Prod.Clasificacion WHERE producto=@producto)
 		INSERT INTO Prod.Clasificacion (lineaProducto,producto)VALUES (@lineaProducto,@producto)
-END
-
+END;
+GO
 
 ---------------------------------------------- NUEVO EMPLEADO -----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.nuevoEmpleado (@nombre varchar(50), @apellido varchar(50), @dni int,
@@ -150,8 +151,7 @@ BEGIN
 	DELETE Info.Empleado WHERE idEmpleado=@IdEmpleado
 END		
 GO
-EXECUTE Info.despedirEmpleado @dni=45073572
-GO
+
 
 -------------------------------------------- NUEVO PRODUCTO ------------------------------------------------
 CREATE OR ALTER PROCEDURE Prod.ingresarCatalogo (@categoria varchar(100), @nombre varchar(100), @precio decimal(10,2))
@@ -181,10 +181,11 @@ CREATE OR ALTER PROCEDURE Prod.eliminarCatalogo (@idCatalogo int)
 AS 
 BEGIN
 	--Elinamos el producto
-	DELETE FROM Prod.Catalogo WHERE idProducto=@idCatalogo
+	UPDATE Prod.Catalogo
+	SET fecha=NULL
+	WHERE idProducto=@idCatalogo
 END
 GO
-
 
 ------------------------------------------- ACTUALIZAR PRECIO -----------------------------------------------
 CREATE OR ALTER PROCEDURE Prod.nuePrecioCatalogo (@idCatalogo int, @nuePrecio decimal(10,2))
@@ -198,35 +199,6 @@ BEGIN
 		SET precioUnidad=@nuePrecio, fecha=GETDATE()
 		WHERE idProducto=@idCatalogo
 	END
-END
-GO
-
---------------------------------------- INGRESAR PRODUCTO IMPORTADO -----------------------------------------
-CREATE OR ALTER PROCEDURE Prod.ingresarImportado (@nombre varchar(100), @proveedor varchar(100),
-											@categoria varchar(50),@cantidadXUnidad varchar(100), @precioUnidad decimal(10,2))
-AS
-BEGIN
-	INSERT INTO Prod.Importado(nombre,proveedor,categoria,cantidadXUnidad,precioUnidad)
-	VALUES (@nombre,@proveedor,@categoria,@cantidadXUnidad,@precioUnidad)
-END
-GO
-
---------------------------------------- ELIMINAR PRODUCTO IMPORTADO -----------------------------------------
-CREATE OR ALTER PROCEDURE Prod.eliminarImportado (@idImportado int)
-AS
-BEGIN 
-		DELETE FROM Prod.Importado
-		WHERE idImportado=@idImportado
-END
-GO
-
----------------------------------- ACTUALIZAR PRECIO PRODUCTO IMPORTADO -------------------------------------
-CREATE OR ALTER PROCEDURE Prod.nuePrecioImportado (@idImportado int, @precioUnidad decimal(10,2))
-AS
-BEGIN
-	UPDATE Prod.Importado 
-	 SET precioUnidad=@precioUnidad
-	 WHERE idImportado=@idImportado
 END
 GO
 
@@ -274,10 +246,16 @@ BEGIN
         DECLARE @IdFactura INT;
         SELECT @IdFactura = (select IdFactura FROM Ven.Venta WHERE IdVenta = @IdVenta)
 
-        UPDATE Ven.Factura
-        SET Estado = 'Anulada'
-        WHERE IdFactura = @IdFactura;
-
+		IF @IdFactura IS NOT NULL
+		BEGIN 
+			UPDATE Ven.Factura
+			SET Estado = 'Anulada'
+			WHERE IdFactura = @IdFactura;
+		END 
+		ELSE
+        BEGIN
+            PRINT 'No hay una venta asociada con ese IDVenta.';
+        END
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -286,3 +264,37 @@ BEGIN
     END CATCH
 END;
 GO
+
+--------------------------------------- NOTA DE CREDITO -----------------------------------------
+CREATE OR ALTER PROCEDURE Ven.nuevaNotaCredito (@IdVenta INT)
+AS 
+BEGIN 
+	BEGIN TRY
+        BEGIN TRANSACTION;
+        DECLARE @IdFactura INT;
+        SELECT @IdFactura = (select IdFactura FROM Ven.Venta WHERE IdVenta = @IdVenta)
+
+		IF @IdFactura IS NOT NULL
+		BEGIN 
+
+			UPDATE Ven.Factura
+			SET Estado = 'Anulada'
+			WHERE IdFactura = @IdFactura;
+
+			INSERT INTO Ven.Nota_De_Credito(IdFactura,Valor,Fecha_emision)
+			SELECT @IdFactura, monto_total, GETDATE() FROM Ven.Venta 
+			WHERE IdVenta=@IdVenta
+			  PRINT 'La nota de crédito fue generada con éxito.';
+        END
+        ELSE
+        BEGIN
+            PRINT 'No existe una venta asociada con el IdVenta proporcionado.';
+        END
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        PRINT 'Error al realizar el borrado lógico de la venta: ' + ERROR_MESSAGE();
+    END CATCH
+END;
+
