@@ -5,25 +5,43 @@
 -----------------------------------------------------tabla Info.Empleado--------------------------------------------------------
 --CASO CORRECTO
 INSERT INTO Info.Empleado (nombre, apellido, dni, direccion, emailPesonal, emailEmpresa, cargo, sucursal, turno, idSucursal)
-VALUES ('Juan', 'P閞ez', 12345678, 'Calle Falsa 123', 'juan.perez@gmail.com', 'jperez@empresa.com', 'Cajero', 'San Justo', 'Ma馻na', 1);
+VALUES ('Juan', 'P茅rez', 12345678, 'Calle Falsa 123', 'juan.perez@gmail.com', 'jperez@empresa.com', 'Cajero', 'San Justo', 'Ma帽ana', 1);
 
--- Verificar la inserci髇
+-- Verificar la inserci贸n
 SELECT * FROM Info.Empleado WHERE dni = 12345678;
 
 
 INSERT INTO Info.Empleado (nombre, apellido, dni, direccion, emailPesonal, emailEmpresa, cargo, sucursal, turno, idSucursal)
-VALUES ('Mar韆', 'G髆ez', 87654321, 'Calle Verdadera 456', 'maria.gomez@gmail.com', 'mgomez@empresa.com', 'Analista', 'San Justo', 'Tarde', 1);
+VALUES ('Mar铆a', 'G贸mez', 87654321, 'Calle Verdadera 456', 'maria.gomez@gmail.com', 'mgomez@empresa.com', 'Analista', 'San Justo', 'Tarde', 1);
 
--- Resultado esperado: Error por violaci髇 del *CHECK constraint* en el campo `cargo`
+-- Resultado esperado: Error por violaci贸n del *CHECK constraint* en el campo `cargo`
 
 
 INSERT INTO Info.Empleado (nombre, apellido, dni, direccion, emailPesonal, emailEmpresa, cargo, sucursal, turno, idSucursal)
-VALUES ('Carlos', 'S醤chez', 45678912, 'Avenida Siempre Viva 742', 'carlos.sanchez@gmail.com', 'csanchez@empresa.com', 'Gerente de sucursal', 'Mor髇', 'Noche', 1);
+VALUES ('Carlos', 'S谩nchez', 45678912, 'Avenida Siempre Viva 742', 'carlos.sanchez@gmail.com', 'csanchez@empresa.com', 'Gerente de sucursal', 'Mor贸n', 'Noche', 1);
 
--- Resultado esperado: Error por violaci髇 del *CHECK constraint* en el campo `sucursal`
+-- Resultado esperado: Error por violaci贸n del *CHECK constraint* en el campo `sucursal`
 
 
 
 
 
 -----------------------------------------------------tabla Info.Sucursal--------------------------------------------------------
+--CASO CORRECTO
+INSERT INTO Info.Sucursal (ciudad, reemplazadaX, direccion, horario, telefono)
+VALUES ('Buenos Aires', 'San Justo', 'Av. Principal 123', '8:00 - 20:00', '5555-5551');
+
+-- Verificar la inserci贸n
+SELECT * FROM Info.Sucursal WHERE direccion = 'Av. Principal 123';
+
+--Caso fallido 1
+INSERT INTO Info.Sucursal (ciudad, reemplazadaX, direccion, horario, telefono)
+VALUES ('Buenos Aires', 'Mor贸n', 'Av. Secundaria 456', '8:00 - 20:00', '5555-5552');
+
+-- Resultado esperado: Error por violaci贸n del CHECK constraint en `reemplazadaX`.
+
+--Caso fallido 2
+INSERT INTO Info.Sucursal (ciudad, reemplazadaX, direccion, horario, telefono)
+VALUES ('Buenos Aires', 'San Justo', 'Calle Nueva 789', '8:00 - 20:00', '1234-5678');
+
+-- Resultado esperado: Error por violaci贸n del CHECK constraint en `telefono`.
