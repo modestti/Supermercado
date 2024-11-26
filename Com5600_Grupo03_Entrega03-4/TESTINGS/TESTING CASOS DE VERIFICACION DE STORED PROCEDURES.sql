@@ -5,66 +5,66 @@
 --Info.nuevaSucursal-----------------------------------------------------------------------------------
 --Caso exitoso
 EXEC Info.nuevaSucursal @ciudad = 'Madrid', @reemplazadaX = 'Centro', @direccion = 'Calle Mayor 123', @horario = '08:00-20:00', @telefono = '600123456';
-SELECT * FROM Info.Sucursal; -- Verificar inserci髇
+SELECT * FROM Info.Sucursal; -- Verificar inserci贸n
 
 --Caso Fallido
 EXEC Info.nuevaSucursal @ciudad = 'Madrid', @reemplazadaX = 'Centro', @direccion = 'Calle Mayor 123', @horario = '08:00-20:00', @telefono = '600123456';
-SELECT * FROM Info.Sucursal; -- No deber韆 insertar una nueva fila por duplicado
+SELECT * FROM Info.Sucursal; -- No deber铆a insertar una nueva fila por duplicado
 
 
 
 --Info.cerrarSucursal-----------------------------------------------------------------------------------
 --Caso Exitoso
 EXEC Info.cerrarSucursal @idSucursal = 1;
-SELECT * FROM Info.Sucursal; -- La sucursal deber韆 tener `NULL` en los campos actualizados
+SELECT * FROM Info.Sucursal; -- La sucursal deber铆a tener `NULL` en los campos actualizados
 
 --Caso Fallido
 EXEC Info.cerrarSucursal @idSucursal = 999; -- ID no existe
-SELECT * FROM Info.Sucursal; -- Ning鷑 cambio deber韆 ocurrir
+SELECT * FROM Info.Sucursal; -- Ning煤n cambio deber铆a ocurrir
 
 
 
 --Info.nuevoHorarioSucursal-----------------------------------------------------------------------------------
 --Caso Exitoso
 EXEC Info.nuevoHorarioSucursal @idSucursal = 1, @horario = '09:00-17:00';
-SELECT * FROM Info.Sucursal; -- Verificar actualizaci髇
+SELECT * FROM Info.Sucursal; -- Verificar actualizaci贸n
 
 --Caso Fallido
 EXEC Info.nuevoHorarioSucursal @idSucursal = 999, @horario = '09:00-17:00';
-SELECT * FROM Info.Sucursal; -- Ning鷑 cambio deber韆 ocurrir
+SELECT * FROM Info.Sucursal; -- Ning煤n cambio deber铆a ocurrir
 
 
 
 --Info.nuevoTelefonoSucursal-----------------------------------------------------------------------------------
 --Caso Exitoso
 EXEC Info.nuevoTelefonoSucursal @idSucursal = 1, @telefono = '600789123';
-SELECT * FROM Info.Sucursal; -- Verificar actualizaci髇
+SELECT * FROM Info.Sucursal; -- Verificar actualizaci贸n
 
 --Caso Fallido
 EXEC Info.nuevoTelefonoSucursal @idSucursal = 999, @telefono = '600789123';
-SELECT * FROM Info.Sucursal; -- Ning鷑 cambio deber韆 ocurrir
+SELECT * FROM Info.Sucursal; -- Ning煤n cambio deber铆a ocurrir
 
 
 
 --Prod.insertarClasificacion-----------------------------------------------------------------------------------
 --Caso Exitoso
-EXEC Prod.insertarClasificacion @lineaProducto = 'Electr髇ica', @producto = 'Televisor';
-SELECT * FROM Prod.Clasificacion; -- Verificar inserci髇
+EXEC Prod.insertarClasificacion @lineaProducto = 'Electr贸nica', @producto = 'Televisor';
+SELECT * FROM Prod.Clasificacion; -- Verificar inserci贸n
 
 --Caso Fallido
-EXEC Prod.insertarClasificacion @lineaProducto = 'Electr髇ica', @producto = 'Televisor';
-SELECT * FROM Prod.Clasificacion; -- No deber韆 duplicarse
+EXEC Prod.insertarClasificacion @lineaProducto = 'Electr贸nica', @producto = 'Televisor';
+SELECT * FROM Prod.Clasificacion; -- No deber铆a duplicarse
 
 
 
 
 --Info.nuevoEmpleado-----------------------------------------------------------------------------------
 --Caso Exitoso
-EXEC Info.nuevoEmpleado @nombre = 'Juan', @apellido = 'P閞ez', @dni = 12345678, @direccion = 'Calle Falsa 123', @emailPersonal = 'juan.perez@gmail.com', @emailEmpresa = 'jperez@empresa.com', @cargo = 'Gerente', @sucursal = 'Centro', @turno = 'M';
-SELECT * FROM Info.Empleado; -- Verificar inserci髇
+EXEC Info.nuevoEmpleado @nombre = 'Juan', @apellido = 'P茅rez', @dni = 12345678, @direccion = 'Calle Falsa 123', @emailPersonal = 'juan.perez@gmail.com', @emailEmpresa = 'jperez@empresa.com', @cargo = 'Supervisor', @sucursal = 'Centro', @turno = 'M';
+SELECT * FROM Info.Empleado; -- Verificar inserci贸n
 
 --Caso Fallido (Sucursal no encontrada)
-EXEC Info.nuevoEmpleado @nombre = 'Juan', @apellido = 'P閞ez', @dni = 12345678, @direccion = 'Calle Falsa 123', @emailPersonal = 'juan.perez@gmail.com', @emailEmpresa = 'jperez@empresa.com', @cargo = 'Gerente', @sucursal = 'Inexistente', @turno = 'M';
+EXEC Info.nuevoEmpleado @nombre = 'Juan', @apellido = 'P茅rez', @dni = 12345678, @direccion = 'Calle Falsa 123', @emailPersonal = 'juan.perez@gmail.com', @emailEmpresa = 'jperez@empresa.com', @cargo = 'Supervisor', @sucursal = 'Inexistente', @turno = 'M';
 
 
 
@@ -72,12 +72,12 @@ EXEC Info.nuevoEmpleado @nombre = 'Juan', @apellido = 'P閞ez', @dni = 12345678, 
 --Caso Exitoso
 SELECT * FROM Info.Empleado
 WHERE dni = 36383025;
-EXEC Info.nuevoCargoEmpleado @dni = 36383025, @nueCargo = 'Director';
-SELECT * FROM Info.Empleado; -- Verificar actualizaci髇
+EXEC Info.nuevoCargoEmpleado @dni = 36383025, @nueCargo = 'Supervisor';
+SELECT * FROM Info.Empleado; -- Verificar actualizaci贸n
 WHERE dni = 36383025;
 
 --Caso Fallido
-EXEC Info.nuevoCargoEmpleado @dni = 99999999, @nueCargo = 'Director';
+EXEC Info.nuevoCargoEmpleado @dni = 99999999, @nueCargo = 'Supervisor';
 
 
 
@@ -96,7 +96,7 @@ EXEC Info.cambioTurnoEmpleado @dni = 99999999, @turno = 'T';
 --Info.despedirEmpleado-----------------------------------------------------------------------------------
 --Caso Exitoso
 EXEC Info.despedirEmpleado @dni = 36383025;
-SELECT * FROM Info.Empleado; -- Verificar eliminaci髇
+SELECT * FROM Info.Empleado; -- Verificar eliminaci贸n
 
 --Caso Fallido
 EXEC Info.despedirEmpleado @dni = 99999999;
@@ -106,7 +106,7 @@ EXEC Info.despedirEmpleado @dni = 99999999;
 --Prod.ingresarCatalogo-----------------------------------------------------------------------------------
 --Caso Exitoso
 EXEC Prod.ingresarCatalogo @categoria = 'Hogar', @nombre = 'Microondas', @precio = 300.00;
-SELECT * FROM Prod.Catalogo; -- Verificar inserci髇
+SELECT * FROM Prod.Catalogo; -- Verificar inserci贸n
 
 --Caso Fallido
 EXEC Prod.ingresarCatalogo @categoria = 'Hogar', @nombre = 'Microondas', @precio = 300.00;
@@ -136,7 +136,7 @@ EXEC Prod.nuePrecioCatalogo @idCatalogo = 999, @nuePrecio = 350.00;
 --Ven.registrarVenta-----------------------------------------------------------------------------------
 --Caso Exitoso
 EXEC Ven.registrarVenta @Id_Sucursal = 1, @Id_Empleado = 1, @IdFactura = 1, @IdMedioPago = 1, @Fecha = '2024-11-26', @Hora = '12:00:00', @IdProducto = 1, @Cantidad = 2, @Precio_unitario = 100.00;
-SELECT * FROM Ven.Venta; -- Verificar inserci髇
+SELECT * FROM Ven.Venta; -- Verificar inserci贸n
 
 --Caso Fallido
 EXEC Ven.registrarVenta @Id_Sucursal = 999, @Id_Empleado = 1, @IdFactura = 1, @IdMedioPago = 1, @Fecha = '2024-11-26', @Hora = '12:00:00', @IdProducto = 1, @Cantidad = 2, @Precio_unitario = 100.00;
