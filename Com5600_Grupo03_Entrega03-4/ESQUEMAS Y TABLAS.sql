@@ -1,3 +1,16 @@
+-------------------------------------------------------------------
+--ENUNCIADO: Entrega 03
+--FECHA DE ENTREGA: 28 de Noviembre 2024
+--NUMERO DE COMISION:5600 
+--NOMBRE DE LA MATERIA: BASE DE DATOS APLICADA
+--NUMERO DEL GRUPO: 03
+--INTEGRANTES: 
+--			MODESTTI, TOMÁS AGUSTÍN (45073572)
+--			NIEVAS, VALENTIN LISANDRO (45464487)
+--			QUIÑONEZ, LUCIANO FEDERICO (45007142)
+--			RODRIGUEZ, MAURICIO EZEQUIEL (42774942)
+-------------------------------------------------------------------
+
 -----------------------------------------------------------------------------
 --------------------- CREACION DE LA BASE Y ESQUEMAS ------------------------
 -----------------------------------------------------------------------------
