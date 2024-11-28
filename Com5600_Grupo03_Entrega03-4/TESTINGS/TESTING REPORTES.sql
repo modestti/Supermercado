@@ -57,7 +57,7 @@ EXECUTE Ven.productosMenosVendidos @Mes=3,@Anio=2019 --Funciona
 --Mostrar total acumulado de ventas (o sea tambien mostrar el 
 --detalle) para una fecha y sucursal particulares
 -------------------------------------------------------------------
-EXECUTE Ven.totalXFechaYSucursal @Fecha='2019-03-13', @Sucursal='San Justo' --Funciona
+EXECUTE Ven.totalXFechaYSucursal @Fecha='2019-01-03', @Sucursal='San Justo' --Funciona
 EXECUTE Ven.totalXFechaYSucursal @Fecha='2019-03-13', @Sucursal='San Juan'	--Se ingresa mal la sucursal 
 
 

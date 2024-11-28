@@ -22,6 +22,6 @@ SELECT * FROM Ven.Nota_De_Credito
 GO
 SELECT * FROM Ven.Factura
 GO
-EXECUTE Ven.nuevaNotaCredito @IdVenta=1
+EXECUTE Ven.nuevaNotaCredito @IdVenta=20
 
 

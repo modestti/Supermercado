@@ -42,11 +42,11 @@ GO
 CREATE TABLE Info.Sucursal
 (
 	idSucursal int identity(1,1) primary key,
-	ciudad varchar (15),																						--Ciudad	
-	reemplazadaX  varchar(20) not null check (reemplazadaX  IN ('San Justo','Ramos Mejia','Lomas del Mirador')), --Chequeamos que se encuentre dentro de la localidad en la que nos manejamos
-	direccion varchar(150),																						--La direccion de nuestra sucursal 
-	horario varchar(50),																						--Los horarios de atencion al publico
-	telefono varchar(9) check (telefono like '5555-555[0-9]')													--Nuestro telefono interno
+	ciudad varchar (15),										--Ciudad Ficticia 	
+	reemplazadaX  varchar(20) not null,							--Ciudad Real
+	direccion varchar(150),										--La direccion de nuestra sucursal 
+	horario varchar(50),										--Los horarios de atencion al publico
+	telefono varchar(9) check (telefono like '5555-555[0-9]')	--Nuestro telefono interno
 );
 GO
 
@@ -60,7 +60,7 @@ CREATE TABLE Info.Empleado
 	emailPesonal varchar(100),
 	emailEmpresa varchar(100),
 	cargo varchar(60) check (cargo IN ('Cajero','Supervisor','Gerente de sucursal')), --Son los tres puestos ue nuestro empleados pueden ocupar
-	sucursal varchar(60) check (sucursal IN ('San Justo','Ramos Mejia','Lomas del Mirador')), --Verificamos que no sean de una sucursal que este fuera del area que nosotros manejamos
+	sucursal varchar(60),
 	turno varchar(30),
 	idSucursal int,
 

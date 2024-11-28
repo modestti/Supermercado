@@ -25,18 +25,27 @@ BEGIN
 				INSERT INTO Info.Sucursal (ciudad,reemplazadaX,direccion,horario,telefono)
 				VALUES ( @ciudad,@reemplazadaX,@direccion,@horario,@telefono)
 		END
-
-END
+		ELSE
+		BEGIN 
+			RAISERROR('Hay una Sucursal en la misma ciudad con igual direccion', 16,1, @Ciudad)
+		END
+END;
 GO
 ------------------------------------------  CERRAR LA SUCURSAL ----------------------------------------------
 CREATE OR ALTER PROCEDURE Info.cerrarSucursal (@idSucursal int)
 AS
 BEGIN 
-	--Elinamos la sucursal 
-	UPDATE Info.Sucursal
+	--Eliminamos la sucursal 
+	IF EXISTS( SELECT 1 FROM Info.Sucursal WHERE idSucursal=@idSucursal)
+	BEGIN
+		UPDATE Info.Sucursal
 		SET horario=NULL, direccion=NULL,ciudad=NULL
 		WHERE idSucursal= @idSucursal
-
+	END 
+	ELSE 
+	BEGIN
+		RAISERROR('No existe una sucursal con ese Id', 16,1, @idSucursal)
+	END
 END;
 GO
 ------------------------------------------ ACTUALIZAR EL HORARIO DE LA SUCURSAL -----------------------------
@@ -44,9 +53,16 @@ CREATE OR ALTER PROCEDURE Info.nuevoHorarioSucursal (@idSucursal int, @horario v
 AS 
 BEGIN
 	--En caso de modificacion de horario, utilizariamos este proceso para actualizar el horario
-	UPDATE Info.Sucursal
+	IF EXISTS( SELECT 1 FROM Info.Sucursal WHERE idSucursal=@idSucursal)
+	BEGIN 
+		UPDATE Info.Sucursal
 		SET horario=@horario
 		WHERE idSucursal= @idSucursal
+	END
+	ELSE
+	BEGIN
+		RAISERROR('No existe una sucursal con ese Id', 16,1, @idSucursal)
+	END
 END;
 GO
 
@@ -55,10 +71,17 @@ CREATE OR ALTER PROCEDURE Info.nuevoTelefonoSucursal (@idSucursal int, @telefono
 AS 
 BEGIN
 	--En caso de modificacion del telefono, utilizariamos este proceso para actualizar el telefono de contacto 
-	UPDATE Info.Sucursal
+	IF EXISTS( SELECT 1 FROM Info.Sucursal WHERE idSucursal=@idSucursal)
+	BEGIN
+		UPDATE Info.Sucursal
 		SET telefono=@telefono
 		WHERE idSucursal= @idSucursal
-END;
+	END
+	ELSE
+	BEGIN
+		RAISERROR('No existe una sucursal con ese Id', 16,1, @idSucursal)
+	END
+END
 GO
 
 ------------------------------------------- NUEVA CLASIFICACION ----------------------------------------------
@@ -67,6 +90,8 @@ AS
 BEGIN 
 	IF NOT EXISTS (SELECT 1 FROM Prod.Clasificacion WHERE producto=@producto)
 		INSERT INTO Prod.Clasificacion (lineaProducto,producto)VALUES (@lineaProducto,@producto)
+	ELSE
+		RAISERROR('Ya existe ese producto',16,1,@producto)
 END;
 GO
 
@@ -109,13 +134,15 @@ BEGIN
 	-- Verificamos si se encontró el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+		RAISERROR ('No hay un empleado con ese DNI',16,1,@dni)
 	END
-	-- Si se encontro actualizamos su cargo 
-	UPDATE Info.Empleado
-	 SET cargo=@nueCargo
-	 WHERE idEmpleado=@IdEmpleado
+	ELSE
+	BEGIN
+		-- Si se encontro actualizamos su cargo 
+		UPDATE Info.Empleado
+		SET cargo=@nueCargo
+		WHERE idEmpleado=@IdEmpleado
+	END
 END
 GO
 
@@ -133,13 +160,15 @@ BEGIN
 	--Verificamos si se encontró el empleado
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+		RAISERROR ('No hay un empleado con ese DNI',16,1,@dni)
 	END
+	ELSE 
+	BEGIN
 	--Actualizamos el turno en el que encontraremos a ese empleado trabajando
-	UPDATE Info.Empleado
-	 SET turno=@turno
-	 WHERE idEmpleado=@IdEmpleado
+		UPDATE Info.Empleado
+		SET turno=@turno
+		WHERE idEmpleado=@IdEmpleado
+	END
 END
 GO
 
@@ -156,11 +185,15 @@ BEGIN
 	-- Verifico si se encontro el IdEmpleado 
 	IF @IdEmpleado is NULL
 	BEGIN 
-	 PRINT 'Empleado no encontrada.';
-        RETURN;
+		RAISERROR ('No hay un empleado con ese DNI',16,1,@dni)
 	END
-	-- Borramos el empleado
-	DELETE Info.Empleado WHERE idEmpleado=@IdEmpleado
+	ELSE 
+	BEGIN 
+		-- Borramos logicamente el empleado
+		UPDATE Info.Empleado
+		SET emailEmpresa=NULL,sucursal=NULL,cargo=NULL,turno=NULL
+		WHERE idEmpleado=@IdEmpleado
+	END
 END		
 GO
 
@@ -173,12 +206,12 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE nombreProducto = @nombre)
     BEGIN
         -- Insertamos el producto en la tabla Catalogo
-        INSERT INTO Prod.Catalogo (nombreProducto, precioUnidad, fecha)
-        VALUES (@nombre, @precio, GETDATE());
+        INSERT INTO Prod.Catalogo (nombreProducto,categoria, precioUnidad, fecha)
+        VALUES (@nombre,@categoria, @precio, GETDATE());
         PRINT 'Producto insertado correctamente en el catálogo.';
 		
-		INSERT INTO Prod.Clasificacion (lineaProducto)
-        VALUES (@categoria);  
+		INSERT INTO Prod.Clasificacion (lineaProducto,producto)
+        VALUES (@categoria,@nombre);  
     END
     ELSE
     BEGIN
@@ -192,10 +225,17 @@ GO
 CREATE OR ALTER PROCEDURE Prod.eliminarCatalogo (@idCatalogo int)
 AS 
 BEGIN
-	--Elinamos el producto
-	UPDATE Prod.Catalogo
-	SET fecha=NULL
-	WHERE idProducto=@idCatalogo
+	IF EXISTS( SELECT 1 FROM Prod.Catalogo WHERE idProducto=@idCatalogo)
+	BEGIN
+		--Elinamos el producto
+		UPDATE Prod.Catalogo
+		SET fecha=NULL
+		WHERE idProducto=@idCatalogo
+	END
+	ELSE 
+	BEGIN 
+		RAISERROR('No hay producto con ese ID', 16,1,@idCatalogo)
+	END
 END
 GO
 
@@ -211,34 +251,69 @@ BEGIN
 		SET precioUnidad=@nuePrecio, fecha=GETDATE()
 		WHERE idProducto=@idCatalogo
 	END
+	ELSE
+		RAISERROR('No hay producto con ese ID',16,1,@idCatalogo)
+END
+GO
+
+--------------------------------------- INGRESAR MEDIO PAGO ----------------------------------------
+CREATE OR ALTER PROCEDURE Info.ingresarMedioPago (@Metodo VARCHAR(50),@Nombre VARCHAR(50))
+AS
+BEGIN 
+	IF NOT EXISTS(SELECT 1 FROM Info.MedioPago WHERE metodoPago=@Metodo AND nombre=@Nombre) AND @Metodo is not NULL
+		INSERT INTO Info.MedioPago (metodoPago,nombre) VALUES (@Metodo,@Nombre)
+	ELSE
+		RAISERROR('Ya existe el metodo de pago',16,1,@Metodo)
 END
 GO
 
 --------------------------------------- INGRESAR UNA VENTA -----------------------------------------
-CREATE OR ALTER PROCEDURE Ven.registrarVenta (@Id_Sucursal INT, @Id_Empleado INT, @IdFactura INT, @IdMedioPago INT, @Fecha DATE, @Hora TIME,
-												@IdProducto INT, @Cantidad INT,@Precio_unitario DECIMAL(10,2)) 
+CREATE OR ALTER PROCEDURE Ven.registrarVenta (@IdSucursal INT, @IdEmpleado INT, @NumeroFactura VARCHAR(50), @IdMedioPago INT,
+												@IdProducto INT, @Cantidad INT,@PrecioUnitario DECIMAL(10,2),@TipoFactura VARCHAR(10)) 
 AS
 BEGIN
+	DECLARE @IdFactura INT
     DECLARE @IdVenta INT;
-    DECLARE @MontoTotal DECIMAL(10,2) = 0;
+    DECLARE @MontoTotal DECIMAL(10,2)
+	DECLARE @Subtotal DECIMAL(10,2)
+	DECLARE @IVA DECIMAL(5,2) = 0.21
 
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        SELECT @MontoTotal = SUM(@Cantidad * @Precio_unitario)
+		IF NOT EXISTS (SELECT 1 FROM Info.Sucursal WHERE idSucursal = @IdSucursal)
+        BEGIN
+            RAISERROR('Ingreso mal el ID de la Sucursal',16,1,@IdSucursal)
+			RETURN
+        END
+
+        -- Validar existencia del producto
+        IF NOT EXISTS (SELECT 1 FROM Prod.Catalogo WHERE IdProducto = @IdProducto)
+        BEGIN
+            RAISERROR('El producto proporcionado no existe.', 16,1,@IdProducto)
+			RETURN
+        END
+
+        SET @Subtotal = @Cantidad*@PrecioUnitario
+		SET @MontoTotal= @Subtotal+ (@Subtotal*@IVA/100)
+
+		INSERT INTO Ven.Factura (Tipo_Factura,Numero_Factura,IVA,Fecha_De_Emision,Subtotal,MontoTotal,Estado)
+		VALUES (@TipoFactura,@NumeroFactura,@IVA,GETDATE(),@Subtotal,@MontoTotal,'Pendiente')
+
+		SET @IdFactura = SCOPE_IDENTITY(); 
 
         INSERT INTO Ven.Venta (Id_Sucursal, Id_Empleado, IdFactura, IdMedioPago, Fecha, Hora, monto_total)
-        VALUES (@Id_Sucursal, @Id_Empleado, @IdFactura, @IdMedioPago, @Fecha, @Hora, @MontoTotal);
+        VALUES (@IdSucursal, @IdEmpleado, @IdFactura, @IdMedioPago, CAST(GETDATE() as date),CAST(GETDATE() as time), @MontoTotal);
 
         SET @IdVenta = SCOPE_IDENTITY();  -- Obtiene el ID de la venta recién insertada
 
         INSERT INTO Ven.Detalle_Venta (IdProducto,IdVenta,Cantidad, Precio_unitario, Subtotal, Numero_factura)
-        VALUES(@IdProducto,@IdVenta,@Cantidad, @Precio_unitario,@Cantidad * @Precio_unitario, (SELECT Numero_Factura FROM Ven.Factura WHERE IdFactura = @IdFactura))
+        VALUES(@IdProducto,@IdVenta,@Cantidad, @PrecioUnitario,@Subtotal, @NumeroFactura)
 
         UPDATE Ven.Factura
-        SET MontoTotal = MontoTotal + @MontoTotal,
-            Estado = 'Completa'
+        SET Estado='Pagada'
         WHERE IdFactura = @IdFactura;
+
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -263,10 +338,15 @@ BEGIN
 			UPDATE Ven.Factura
 			SET Estado = 'Anulada'
 			WHERE IdFactura = @IdFactura;
+
+			UPDATE Ven.Venta
+			SET Fecha=NULL, Hora=NULL
+			WHERE IdFactura=@IdFactura AND IdVenta=@IdVenta
 		END 
 		ELSE
         BEGIN
-            PRINT 'No hay una venta asociada con ese IDVenta.';
+            RAISERROR('No existe una venta asociada al ID ingresado',16,1,@IdVenta)
+			RETURN 
         END
         COMMIT TRANSACTION;
     END TRY
