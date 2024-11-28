@@ -82,7 +82,7 @@ BEGIN
 				emailPesonal nvarchar(255),
 				emailEmpresa nvarchar(255),
 				cargo varchar(60) check (cargo IN ('Cajero','Supervisor','Gerente de sucursal')),
-				sucursal varchar(60) check (sucursal IN ('San Justo','Ramos Mejia','Lomas del Mirador')),
+				sucursal varchar(60),
 				turno varchar(25)
 			) 
 			--Generamos la consulta para importar el archivo 
@@ -103,6 +103,7 @@ BEGIN
 			 (SELECT idSucursal FROM Info.Sucursal suc WHERE suc.reemplazadaX = empTemp.sucursal) as idSucursal
 			 FROM #EmpleadosTemporal empTemp
 			 WHERE NOT EXISTS (SELECT 1 FROM Info.Empleado e WHERE empTemp.dni= e.dni) AND empTemp.idEmpleado IS NOT NULL --Evitamos duplicados y basura del archivo 
+
 			--Eliminamos la tabla temporal 
 			PRINT 'Los datos se insertaron exitosamente' 
 			DROP TABLE #EmpleadosTemporal		
