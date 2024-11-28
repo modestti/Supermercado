@@ -43,6 +43,8 @@ EXEC sp_rename 'Info.Empleado.direccion_temp', 'direccion', 'COLUMN';
 EXEC sp_rename 'Info.Empleado.emailPesonal_temp', 'emailPesonal', 'COLUMN';
 GO
 
+SELECT * FROM Info.Empleado
+GO
 --PARA VISUALIZAR LOS DATOS CREAMOS UN PROCEDURE
 CREATE OR ALTER PROCEDURE Info.desencriptarDatoEmpleado (@ClaveEncriptacion VARCHAR(100))
 AS
@@ -88,6 +90,7 @@ END
 ---INSERTAMOS EMPLEADOS PARA VER QUE SUCEDE
 EXECUTE Info.nuevoEmpleadoEncrip @nombre='Juan', @apellido='Mendez' , @dni=45073572, @direccion='Ocampo 12, San Justo', @emailPersonal='juanCarlos1MAmigos@gmail.com', @emailEmpresa= 'juanM@empresa.com',
 							@cargo='Cajero', @sucursal='San Justo', @turno='TM'
+SELECT * FROM Info.Empleado
 GO
 EXECUTE Info.nuevoEmpleadoEncrip @nombre='Tomas', @apellido='Perez' , @dni=36383025, @direccion='San Justo', @emailPersonal='tomas@gmail.com', @emailEmpresa= 'tomasEmpresa@prrr.com',
 							@cargo='Cajero', @sucursal='San Justo', @turno='TM'

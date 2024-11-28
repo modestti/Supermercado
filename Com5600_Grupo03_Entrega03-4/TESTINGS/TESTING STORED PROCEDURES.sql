@@ -63,11 +63,11 @@ SELECT * FROM Info.Sucursal; -- Ningún cambio debería ocurrir
 
 --Info.nuevoEmpleado-----------------------------------------------------------------------------------
 --Caso Exitoso
-EXEC Info.nuevoEmpleado @nombre = 'Juan', @apellido = 'Pérez', @dni = 12345678, @direccion = 'Calle Falsa 123', @emailPersonal = 'juan.perez@gmail.com', @emailEmpresa = 'jperez@empresa.com', @cargo = 'Supervisor', @sucursal = 'Laferrere', @turno = 'M';
+EXEC Info.nuevoEmpleado @nombre = 'Roberto', @apellido = 'Medina', @dni = 12546987, @direccion = 'Santa Maria', @emailPersonal = 'robert.medina@gmail.com', @emailEmpresa = 'rmedina@empresa.com', @cargo = 'Supervisor', @sucursal = 'Laferrere', @turno = 'M';
 SELECT * FROM Info.Empleado; -- Verificar inserción
 
 --Caso Fallido (Sucursal no encontrada)
-EXEC Info.nuevoEmpleado @nombre = 'Juan', @apellido = 'Pérez', @dni = 12345678, @direccion = 'Calle Falsa 123', @emailPersonal = 'juan.perez@gmail.com', @emailEmpresa = 'jperez@empresa.com', @cargo = 'Supervisor', @sucursal = 'Catan', @turno = 'M';
+EXEC Info.nuevoEmpleado @nombre = 'Roberto', @apellido = 'Medina', @dni = 12345678, @direccion = 'Santa Maria', @emailPersonal = 'robert.medina@gmail.com', @emailEmpresa = 'rmedina@empresa.com', @cargo = 'Supervisor', @sucursal = 'Catan', @turno = 'M';
 
 
 --Info.nuevoCargoEmpleado-----------------------------------------------------------------------------------
@@ -148,11 +148,11 @@ EXEC Prod.nuePrecioCatalogo @idCatalogo = 999, @nuePrecio = 350.00;
 
 --Info.ingresarMedioPago
 --Caso Exitoso
-EXECUTE Info.ingresarMedioPago @Metodo='Cash', @Nombre='Null'
+EXECUTE Info.ingresarMedioPago @Metodo='Null', @Nombre='Cash'
 SELECT * FROM Info.MedioPago
 
 --Caso Fallido
-EXECUTE Info.ingresarMedioPago @Metodo='Cash', @Nombre='Null'
+EXECUTE Info.ingresarMedioPago @Metodo='Null', @Nombre='Cash'
 
 --Ven.registrarVenta-----------------------------------------------------------------------------------
 --Caso Exitoso
@@ -162,7 +162,7 @@ SELECT * FROM Ven.Factura
 SELECT * FROM Ven.Detalle_Venta-- Verificar inserción
 
 --Caso Fallido
-EXEC Ven.registrarVenta @IdSucursal=6, @IdEmpleado=257022, @NumeroFactura='004-89-1012', @IdMedioPago=1, @IdProducto=2, @Cantidad=30, @PrecioUnitario=2.10, @TipoFactura='B'
+EXEC Ven.registrarVenta @IdSucursal=999, @IdEmpleado=257022, @NumeroFactura='004-89-1012', @IdMedioPago=1, @IdProducto=2, @Cantidad=30, @PrecioUnitario=2.10, @TipoFactura='B'
 
 --Ven.cancelarVenta
 --Caso Exitoso
@@ -171,5 +171,5 @@ SELECT * FROM Ven.Venta
 SELECT * FROM Ven.Factura
 
 --Caso Fallido
-EXEC Ven.cancelarVenta @IdVenta=3
+EXEC Ven.cancelarVenta @IdVenta=9999
 
