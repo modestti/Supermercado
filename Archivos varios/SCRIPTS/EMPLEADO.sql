@@ -148,9 +148,9 @@ BEGIN
 				INSERT INTO #EmpleadosTemporal(idEmpleado,nombre,apellido,dni,direccion,emailPesonal,emailEmpresa,cargo,sucursal,turno)
 				SELECT [Legajo/ID],Nombre,Apellido,DNI,Direccion,[email personal],[email empresa],Cargo,Sucursal,Turno
 				FROM OPENROWSET(
-				''Microsoft.ACE.OLEDB.12.0'',
-				''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'',
-				''SELECT * FROM ['+@nombreHoja+']'');'
+				''Microsoft.ACE.OLEDB.12.0'',		--Proveedor OLEB
+				''Excel 12.0; Database=' + @RutaArchivo + '; HDR=YES;'',	--Especifica que es un archivo Excel, la ruta del archivo, que hay encabezado
+				''SELECT * FROM ['+@nombreHoja+']'');'		 --la hoja en la que se encuentran los datos
 			--Ejecutamos la consulta 
 			EXEC sp_executesql @Consulta 
 
