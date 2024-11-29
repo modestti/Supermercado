@@ -166,6 +166,7 @@ BEGIN
 			PRINT 'Los datos se insertaron exitosamente' 
 			DROP TABLE #EmpleadosTemporal		
  	END TRY 
+		--En caso de fallar la hora de la importacion mostraria el mensaje con el error correspondiente 
  	BEGIN CATCH 
   			PRINT 'No se pudieron importar los empleados ' + @RutaArchivo 
   			PRINT ERROR_MESSAGE() 
