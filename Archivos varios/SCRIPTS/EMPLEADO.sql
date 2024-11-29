@@ -55,7 +55,7 @@ CREATE OR ALTER PROCEDURE Info.nuevoCargoEmpleado (@dni int, @nueCargo varchar(2
 AS
 BEGIN
 	DECLARE @IdEmpleado INT
-	--Busco el idSucursal por el DNI 
+	--Busco el idEmpleado por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
     	FROM Info.Empleado
     	WHERE dni = @dni;
