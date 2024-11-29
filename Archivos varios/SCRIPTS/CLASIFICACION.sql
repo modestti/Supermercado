@@ -65,5 +65,7 @@ END
 GO
 EXECUTE Prod.importarClasificacionProductos @RutaArchivo='C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS01\TRABAJO PRACTICO\TP_integrador_Archivos\Informacion_complementaria.xlsx', @nombreHoja = 'Clasificacion productos$'
 GO
+
+---VERIFICO QUE SE HAYA IMPORTADO A LA TABLA
 SELECT * FROM Prod.Clasificacion
 GO
