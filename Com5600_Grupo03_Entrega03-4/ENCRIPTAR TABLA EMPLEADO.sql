@@ -5,9 +5,9 @@
 --NOMBRE DE LA MATERIA: BASE DE DATOS APLICADA
 --NUMERO DEL GRUPO: 03
 --INTEGRANTES: 
---			MODESTTI, TOM¡S AGUSTÕN (45073572)
+--			MODESTTI, TOM√ÅS AGUST√çN (45073572)
 --			NIEVAS, VALENTIN LISANDRO (45464487)
---			QUI—ONEZ, LUCIANO FEDERICO (45007142)
+--			QUI√ëONEZ, LUCIANO FEDERICO (45007142)
 --			RODRIGUEZ, MAURICIO EZEQUIEL (42774942)
 -------------------------------------------------------------------
 USE Com5600G03
@@ -66,7 +66,7 @@ END
 
 EXECUTE Info.desencriptarDatoEmpleado @ClaveEncriptacion='claveSegura1234'
 
---PARA A—ADIR DATOS DE UN NUEVO EMPLEADO
+--PARA A√ëADIR DATOS DE UN NUEVO EMPLEADO
 DROP PROCEDURE Info.nuevoEmpleado
 GO
 CREATE OR ALTER PROCEDURE Info.nuevoEmpleadoEncrip (@nombre VARCHAR(100), @apellido VARCHAR(100), @dni INT, @direccion VARCHAR(100), 
@@ -75,12 +75,12 @@ AS
 BEGIN
 	IF NOT EXISTS( SELECT 1 FROM Info.Empleado WHERE CONVERT(VARCHAR(50), DecryptByPassPhrase('claveSegura1234', dni))=CAST(@dni AS VARCHAR(15)))
 	BEGIN	
-			DECLARE @idSucursal INT=(SELECT idSucursal FROM Info.Sucursal WHERE reemplazadaX=@sucursal)
+		DECLARE @idSucursal INT=(SELECT idSucursal FROM Info.Sucursal WHERE reemplazadaX=@sucursal)
 
-			INSERT INTO Info.Empleado(nombre,apellido,dni,direccion,emailPesonal,emailEmpresa,cargo,sucursal,turno,idSucursal)
-			VALUES (@nombre,@apellido, ENCRYPTBYPASSPHRASE('claveSegura1234',CAST(@dni as VARCHAR(15))),ENCRYPTBYPASSPHRASE('claveSegura1234', @direccion),
-			ENCRYPTBYPASSPHRASE('claveSegura1234', @emailPersonal),@emailEmpresa,@cargo,@sucursal,@turno,@idSucursal)
-			print 'Se ingreso el nuevo empleado correctamente'
+		INSERT INTO Info.Empleado(nombre,apellido,dni,direccion,emailPesonal,emailEmpresa,cargo,sucursal,turno,idSucursal)
+		VALUES (@nombre,@apellido, ENCRYPTBYPASSPHRASE('claveSegura1234',CAST(@dni as VARCHAR(15))),ENCRYPTBYPASSPHRASE('claveSegura1234', @direccion),
+		ENCRYPTBYPASSPHRASE('claveSegura1234', @emailPersonal),@emailEmpresa,@cargo,@sucursal,@turno,@idSucursal)
+		print 'Se ingreso el nuevo empleado correctamente'
 	END
 	ELSE
 	BEGIN 
