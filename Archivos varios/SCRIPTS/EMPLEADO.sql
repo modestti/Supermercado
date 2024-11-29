@@ -79,7 +79,7 @@ CREATE OR ALTER PROCEDURE Info.cambioTurnoEmpleado (@dni int, @turno varchar(20)
 AS
 BEGIN
 	DECLARE @IdEmpleado INT
-	--Busco el idSucursal por el DNI 
+	--Busco el idEmpleado por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
     	FROM Info.Empleado
     	WHERE dni = @dni;
@@ -87,6 +87,7 @@ BEGIN
 	IF @IdEmpleado is NULL
 	BEGIN 
 	 	PRINT 'Empleado no encontrada.';
+		RETURN;
         RETURN;
 	END
 	--Actualizamos el turno en el que encontraremos a ese empleado trabajando
@@ -103,7 +104,7 @@ CREATE OR ALTER PROCEDURE Info.despedirEmpleado (@dni int)
 AS
 BEGIN
 	DECLARE @IdEmpleado INT
-	-- Busco el idSucursal por el DNI 
+	--Busco el idEmpleado por el DNI 
 	SELECT @IdEmpleado = IdEmpleado
     	FROM Info.Empleado
     	WHERE dni = @dni;
